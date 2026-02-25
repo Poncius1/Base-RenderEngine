@@ -1,0 +1,5 @@
+<RCC>
+    <qresource prefix="/qt/qml/graficacion1">
+        <file>main.qml</file>
+    </qresource>
+</RCC>
