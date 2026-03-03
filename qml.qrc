@@ -1,5 +1,6 @@
 <RCC>
     <qresource prefix="/qt/qml/graficacion1">
         <file>main.qml</file>
+        <file>C:/Users/Ponci/Downloads/Pixar_UP.png</file>
     </qresource>
 </RCC>

@@ -42,7 +42,8 @@ int main(int argc, char* argv[])
 
     // Demo inicial
     canvas->clear();
-    canvas->randomPixels(1500);
+    
+    canvas->processImage("C:/Users/Ponci/Downloads/Pixar_UP.png");
 
     return app.exec();
 }

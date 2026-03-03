@@ -16,6 +16,7 @@ public:
     Q_INVOKABLE void clear();
     Q_INVOKABLE void setPixel(int x, int y, const QColor& color);
     Q_INVOKABLE void randomPixels(int count);
+    Q_INVOKABLE void processImage(const QString& imagePath);
 
 private:
     void ensureBuffer();
