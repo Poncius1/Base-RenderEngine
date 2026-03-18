@@ -2,11 +2,10 @@ import QtQuick 2.15
 import QtQuick.Window 2.15
 
 Window {
-    id: win
     visible: true
-    width: 400
-    height: 400
-    title: "Graficacion - Tarea 3"
+    width: 500
+    height: 500
+    title: "Graficacion - Tarea 4"
 
     Item {
         anchors.fill: parent
@@ -14,31 +13,54 @@ Window {
 
         Keys.onPressed: (event) => {
 
-            if (event.key === Qt.Key_Space) {
+            switch (event.key) {
+
+            case Qt.Key_Space:
                 canvas.renderCube()
-                event.accepted = true
+                break
 
-            } else if (event.key === Qt.Key_P) {
+            case Qt.Key_P:
                 canvas.toggleProjection()
-                event.accepted = true
+                break
 
-            } else if (event.key === Qt.Key_1) {
+            case Qt.Key_1:
                 canvas.setCameraPreset(0)
-                event.accepted = true
+                break
 
-            } else if (event.key === Qt.Key_2) {
+            case Qt.Key_2:
                 canvas.setCameraPreset(1)
-                event.accepted = true
+                break
 
-            } else if (event.key === Qt.Key_V) {
+            case Qt.Key_V:
                 canvas.toggleDualView()
-                event.accepted = true
+                break
 
-            } else if (event.key === Qt.Key_A) {
+            case Qt.Key_A:
                 canvas.toggleAnimation()
-                event.accepted = true
+                break
+
+            case Qt.Key_Q:
+                canvas.toggleWhiteLight()
+                break
+
+            case Qt.Key_W:
+                canvas.toggleRedLight()
+                break
+
+            case Qt.Key_S:
+                canvas.toggleShadingMode()
+                break
+
+            case Qt.Key_Up:
+                canvas.increaseSpecularIntensity()
+                break
+
+            case Qt.Key_Down:
+                canvas.decreaseSpecularIntensity()
+                break
             }
+
+            event.accepted = true
         }
-       
     }
 }

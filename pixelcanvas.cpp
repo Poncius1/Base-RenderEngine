@@ -1,8 +1,10 @@
 #include "pixelcanvas.h"
+
 #include <QPainter>
 #include <QRandomGenerator>
 #include <QImage>
 #include <QDebug>
+
 #include <algorithm>
 #include <cstdint>
 
@@ -25,21 +27,20 @@ PixelCanvas::PixelCanvas(QQuickItem* parent)
     setAntialiasing(false);
     setRenderTarget(QQuickPaintedItem::FramebufferObject);
 
-    // Base
+    // Cámara principal
     m_pipe.setCameraPreset(0);
 
-    // EXTRA A: presets iniciales para dual
+    // Cámaras iniciales para vista dual
     m_pipe.setCameraPresetA(0);
     m_pipe.setCameraPresetB(0);
 
-    // EXTRA B: timer (~60fps)
+    // Timer de animación (~60 FPS)
     m_animTimer.setInterval(16);
 
     connect(&m_animTimer, &QTimer::timeout, this, [this]() {
-        // dt en segundos
-        float dt = float(m_elapsed.restart()) / 1000.0f;
+        const float dt = float(m_elapsed.restart()) / 1000.0f;
         m_pipe.tick(dt);
-        renderCube(); // re-render continuo (respeta dual view)
+        renderCube();
         });
 
     m_elapsed.start();
@@ -79,12 +80,11 @@ void PixelCanvas::processImage(const QString& imagePath)
 
     for (int y = 0; y < copyH; ++y) {
         for (int x = 0; x < copyW; ++x) {
-
             QColor pixelColor = originalImage.pixelColor(x, y);
 
-            int r = pixelColor.red();
-            int g = pixelColor.green();
-            int b = pixelColor.blue();
+            const int r = pixelColor.red();
+            const int g = pixelColor.green();
+            const int b = pixelColor.blue();
 
             if (r == 65 && g == 142 && b == 202) {
                 pixelColor = QColor(0, 0, 0);
@@ -104,10 +104,13 @@ void PixelCanvas::paint(QPainter* painter)
     painter->setRenderHint(QPainter::Antialiasing, false);
     painter->setRenderHint(QPainter::SmoothPixmapTransform, false);
 
-    const QImage img(reinterpret_cast<const uchar*>(m_buffer.data.data()),
-        m_buffer.w, m_buffer.h,
+    const QImage img(
+        reinterpret_cast<const uchar*>(m_buffer.data.data()),
+        m_buffer.w,
+        m_buffer.h,
         m_buffer.w * int(sizeof(uint32_t)),
-        QImage::Format_ARGB32);
+        QImage::Format_ARGB32
+    );
 
     painter->drawImage(QRect(0, 0, int(width()), int(height())), img);
 }
@@ -135,25 +138,27 @@ void PixelCanvas::randomPixels(int count)
         const int x = QRandomGenerator::global()->bounded(m_buffer.w);
         const int y = QRandomGenerator::global()->bounded(m_buffer.h);
 
-        QColor c(QRandomGenerator::global()->bounded(256),
+        QColor c(
             QRandomGenerator::global()->bounded(256),
-            QRandomGenerator::global()->bounded(256));
+            QRandomGenerator::global()->bounded(256),
+            QRandomGenerator::global()->bounded(256)
+        );
 
-        if (c == Qt::black) c = Qt::white;
+        if (c == Qt::black)
+            c = Qt::white;
+
         m_buffer.setPixel(x, y, toARGB32(c));
     }
 
     update();
 }
 
-// EXTRA A toggle
 void PixelCanvas::toggleDualView()
 {
     m_dualView = !m_dualView;
     renderCube();
 }
 
-// EXTRA B toggle
 void PixelCanvas::toggleAnimation()
 {
     m_pipe.toggleAnimation();
@@ -166,7 +171,7 @@ void PixelCanvas::toggleAnimation()
     else
     {
         m_animTimer.stop();
-        renderCube(); // render final estático
+        renderCube();
     }
 }
 
@@ -176,9 +181,9 @@ void PixelCanvas::renderCube()
     m_buffer.clear(kBlackARGB);
 
     if (m_dualView)
-        m_pipe.renderCubePointsDual(m_buffer);
+        m_pipe.renderCubeDual(m_buffer);
     else
-        m_pipe.renderCubePoints(m_buffer);
+        m_pipe.renderCube(m_buffer);
 
     update();
 }
@@ -191,7 +196,6 @@ void PixelCanvas::toggleProjection()
 
 void PixelCanvas::setCameraPreset(int preset)
 {
-    // En dual, actualiza A y B con el mismo preset (simple)
     if (m_dualView)
     {
         m_pipe.setCameraPresetA(preset);
@@ -202,5 +206,35 @@ void PixelCanvas::setCameraPreset(int preset)
         m_pipe.setCameraPreset(preset);
     }
 
+   
+}
+
+void PixelCanvas::toggleShadingMode()
+{
+    m_pipe.toggleShadingMode();
+    renderCube();
+}
+
+void PixelCanvas::increaseSpecularIntensity()
+{
+    m_pipe.increaseSpecularIntensity();
+    renderCube();
+}
+
+void PixelCanvas::decreaseSpecularIntensity()
+{
+    m_pipe.decreaseSpecularIntensity();
+    renderCube();
+}
+
+void PixelCanvas::toggleWhiteLight()
+{
+    m_pipe.toggleWhiteLight();
+    renderCube();
+}
+
+void PixelCanvas::toggleRedLight()
+{
+    m_pipe.toggleRedLight();
     renderCube();
 }

@@ -1,7 +1,21 @@
 #include "RenderPipeline.h"
 
-static constexpr uint32_t kWhiteARGB = 0xFFFFFFFFu;
 static constexpr uint32_t kBlackARGB = 0xFF000000u;
+
+namespace
+{
+    inline Vec3 transformPoint(const Mat4& M, const Vec3& p)
+    {
+        const Vec4 r = mat4MulVec4(M, V4(p.x, p.y, p.z, 1.0f));
+        return { r.x, r.y, r.z };
+    }
+
+    inline Vec3 transformDirection(const Mat4& M, const Vec3& v)
+    {
+        const Vec4 r = mat4MulVec4(M, V4(v.x, v.y, v.z, 0.0f));
+        return { r.x, r.y, r.z };
+    }
+}
 
 bool RenderPipeline::ndcToPixel(float ndcX, float ndcY, float ndcZ,
     const PixelBuffer& b, const Viewport& vp,
@@ -11,8 +25,8 @@ bool RenderPipeline::ndcToPixel(float ndcX, float ndcY, float ndcZ,
     if (ndcY < -1.0f || ndcY > 1.0f) return false;
     if (ndcZ < -1.0f || ndcZ > 1.0f) return false;
 
-    float fx = (ndcX * 0.5f + 0.5f) * float(vp.w - 1);
-    float fy = (1.0f - (ndcY * 0.5f + 0.5f)) * float(vp.h - 1);
+    const float fx = (ndcX * 0.5f + 0.5f) * float(vp.w - 1);
+    const float fy = (1.0f - (ndcY * 0.5f + 0.5f)) * float(vp.h - 1);
 
     outX = vp.x + m_roundToInt(fx);
     outY = vp.y + m_roundToInt(fy);
@@ -20,21 +34,44 @@ bool RenderPipeline::ndcToPixel(float ndcX, float ndcY, float ndcZ,
     return b.inBounds(outX, outY);
 }
 
-void RenderPipeline::drawPointCross(PixelBuffer& b, int x, int y, uint32_t argb)
-{
-    b.setPixel(x, y, argb);
-    b.setPixel(x - 1, y, argb);
-    b.setPixel(x + 1, y, argb);
-    b.setPixel(x, y - 1, argb);
-    b.setPixel(x, y + 1, argb);
-}
-
 void RenderPipeline::toggleProjection()
 {
-    proj.type = (proj.type == ProjectionType::Persp) ? ProjectionType::Ortho : ProjectionType::Persp;
+    proj.type = (proj.type == ProjectionType::Persp)
+        ? ProjectionType::Ortho
+        : ProjectionType::Persp;
 }
 
-// presets base
+void RenderPipeline::toggleWhiteLight()
+{
+    m_whiteLight.enabled = !m_whiteLight.enabled;
+}
+
+void RenderPipeline::toggleRedLight()
+{
+    m_redLight.enabled = !m_redLight.enabled;
+}
+
+void RenderPipeline::toggleShadingMode()
+{
+    m_shadingMode = (m_shadingMode == ShadingMode::Gouraud)
+        ? ShadingMode::Phong
+        : ShadingMode::Gouraud;
+}
+
+void RenderPipeline::increaseSpecularIntensity()
+{
+    m_material.specularIntensity += 0.1f;
+    if (m_material.specularIntensity > 3.0f)
+        m_material.specularIntensity = 3.0f;
+}
+
+void RenderPipeline::decreaseSpecularIntensity()
+{
+    m_material.specularIntensity -= 0.1f;
+    if (m_material.specularIntensity < 0.0f)
+        m_material.specularIntensity = 0.0f;
+}
+
 void RenderPipeline::setCameraPreset(int preset)
 {
     cam.center = { 0,0,0 };
@@ -42,124 +79,199 @@ void RenderPipeline::setCameraPreset(int preset)
     switch (preset)
     {
     default:
-    case 0: cam.eye = { 0,0,60 };   cam.up = { 0,1,0 };  break; // frente
-    case 1: cam.eye = { 45,35,60 }; cam.up = { 0,1,0 };  break; // diagonal
+    case 0:
+        cam.eye = { 0,0,60 };
+        cam.up = { 0,1,0 };
+        break;
+    case 1:
+        cam.eye = { 45,35,60 };
+        cam.up = { 0,1,0 };
+        break;
     }
 }
 
-// presets para split
 void RenderPipeline::setCameraPresetA(int preset)
 {
     camA.center = { 0,0,0 };
+
     switch (preset)
     {
     default:
-    case 0: camA.eye = { 0,0,60 };  camA.up = { 0,1,0 }; break; // frontal
-    case 1: camA.eye = { 60,0,0 };  camA.up = { 0,1,0 }; break; // derecha
+    case 0:
+        camA.eye = { 0,0,60 };
+        camA.up = { 0,1,0 };
+        break;
+    case 1:
+        camA.eye = { 60,0,0 };
+        camA.up = { 0,1,0 };
+        break;
     }
 }
 
 void RenderPipeline::setCameraPresetB(int preset)
 {
     camB.center = { 0,0,0 };
+
     switch (preset)
     {
     default:
-    case 0: camB.eye = { 45,35,60 }; camB.up = { 0,1,0 };  break; // diagonal
-    case 1: camB.eye = { 0,60,0 };   camB.up = { 0,0,-1 }; break; // arriba
+    case 0:
+        camB.eye = { 45,35,60 };
+        camB.up = { 0,1,0 };
+        break;
+    case 1:
+        camB.eye = { 0,60,0 };
+        camB.up = { 0,0,-1 };
+        break;
     }
 }
 
-// Renderiza el cubo en un viewport específico 
-void RenderPipeline::renderCubeIntoViewport(PixelBuffer& buffer,
+bool RenderPipeline::projectVertexToScreen(
+    const Vertex& inVertex,
+    const Mat4& model,
+    const Mat4& MVP,
+    const Camera& camera,
+    const Projection& projection,
+    const PixelBuffer& buffer,
+    const Viewport& vp,
+    ScreenVertex& outVertex) const
+{
+    const Vec3& p = inVertex.position;
+
+    const Vec3 worldPos = transformPoint(model, inVertex.position);
+    const Vec3 worldNormal = transformDirection(model, inVertex.normal);
+
+    const Vec3 litColor = Lighting::shadePoint(
+        inVertex.color,
+        worldPos,
+        worldNormal,
+        camera,
+        m_material,
+        m_whiteLight,
+        m_redLight
+    );
+
+    const Vec4 clip = mat4MulVec4(MVP, V4(p.x, p.y, p.z, 1.0f));
+
+    if (projection.type == ProjectionType::Persp)
+    {
+        if (clip.w <= 1e-6f) return false;
+    }
+    else
+    {
+        if (m_fabs(clip.w) < 1e-6f) return false;
+    }
+
+    const float invW = 1.0f / clip.w;
+    const float ndcX = clip.x * invW;
+    const float ndcY = clip.y * invW;
+    const float ndcZ = clip.z * invW;
+
+    int px, py;
+    if (!ndcToPixel(ndcX, ndcY, ndcZ, buffer, vp, px, py))
+        return false;
+
+    outVertex.x = float(px);
+    outVertex.y = float(py);
+    outVertex.z = ndcZ;
+
+    outVertex.color = litColor;
+    outVertex.baseColor = inVertex.color;
+    outVertex.worldPos = worldPos;
+    outVertex.worldNormal = worldNormal;
+
+    return true;
+}
+
+void RenderPipeline::renderCubeIntoViewport(
+    PixelBuffer& buffer,
+    Rasterizer& rasterizer,
     const Camera& camera,
     const Projection& projection,
     const Viewport& vp,
     const Mat4& model) const
 {
-    float aspect = (vp.h > 0) ? float(vp.w) / float(vp.h) : 1.0f;
+    const float aspect = (vp.h > 0) ? float(vp.w) / float(vp.h) : 1.0f;
 
-    Mat4 V = makeView(camera);
-    Mat4 P = makeProjection(projection, aspect);
+    const Mat4 V = makeView(camera);
+    const Mat4 P = makeProjection(projection, aspect);
+    const Mat4 PV = mat4Mul(P, V);
+    const Mat4 MVP = mat4Mul(PV, model);
 
-    // MVP = P * V * M
-    Mat4 PV = mat4Mul(P, V);
-    Mat4 MVP = mat4Mul(PV, model);
+    const QVector<Triangle> tris = CubeMesh::build();
 
-    const float hx = 7.5f;
-    const float hy = 5.0f;
-    const float hz = 10.0f;
-
-    const Vec3 verts[8] = {
-        {-hx,-hy,-hz},{ hx,-hy,-hz},{ hx, hy,-hz},{-hx, hy,-hz},
-        {-hx,-hy, hz},{ hx,-hy, hz},{ hx, hy, hz},{-hx, hy, hz}
-    };
-
-    for (const Vec3& v : verts)
+    for (const Triangle& tri : tris)
     {
-        Vec4 clip = mat4MulVec4(MVP, V4(v.x, v.y, v.z, 1.0f));
+        ScreenVertex sv0, sv1, sv2;
 
-        if (projection.type == ProjectionType::Persp)
-        {
-            if (clip.w <= 1e-6f) continue; // detrás de cámara
-        }
-        else
-        {
-            if (m_fabs(clip.w) < 1e-6f) continue;
-        }
+        const bool ok0 = projectVertexToScreen(tri.v0, model, MVP, camera, projection, buffer, vp, sv0);
+        const bool ok1 = projectVertexToScreen(tri.v1, model, MVP, camera, projection, buffer, vp, sv1);
+        const bool ok2 = projectVertexToScreen(tri.v2, model, MVP, camera, projection, buffer, vp, sv2);
 
-        float invW = 1.0f / clip.w;
-        float ndcX = clip.x * invW;
-        float ndcY = clip.y * invW;
-        float ndcZ = clip.z * invW;
+        if (!ok0 || !ok1 || !ok2)
+            continue;
 
-        int px, py;
-        if (!ndcToPixel(ndcX, ndcY, ndcZ, buffer, vp, px, py)) continue;
-
-        drawPointCross(buffer, px, py, kWhiteARGB);
+        rasterizer.drawTriangle(buffer, sv0, sv1, sv2);
     }
 }
 
-// Base: una sola vista (full viewport)
-void RenderPipeline::renderCubePoints(PixelBuffer& buffer) const
+void RenderPipeline::renderCube(PixelBuffer& buffer) const
 {
     buffer.clear(kBlackARGB);
 
-    // EXTRA B: model animado
     Mat4 model = mat4Identity();
     if (m_animate)
     {
-        float rad = m_degToRad(m_angleDeg);
+        const float rad = m_degToRad(m_angleDeg);
         model = mat4RotationY(rad);
     }
 
-    Viewport vp{ 0, 0, buffer.w, buffer.h };
-    renderCubeIntoViewport(buffer, cam, proj, vp, model);
+    Rasterizer rasterizer;
+    RasterizerFrameSettings settings;
+    settings.shadingMode = m_shadingMode;
+    settings.camera = cam;
+    settings.material = m_material;
+    settings.whiteLight = m_whiteLight;
+    settings.redLight = m_redLight;
+
+    rasterizer.beginFrame(buffer, settings);
+
+    const Viewport vp{ 0, 0, buffer.w, buffer.h };
+    renderCubeIntoViewport(buffer, rasterizer, cam, proj, vp, model);
 }
 
-// EXTRA A: dos vistas al mismo tiempo (split horizontal)
-void RenderPipeline::renderCubePointsDual(PixelBuffer& buffer) const
+void RenderPipeline::renderCubeDual(PixelBuffer& buffer) const
 {
     buffer.clear(kBlackARGB);
 
-    // EXTRA B: model animado
     Mat4 model = mat4Identity();
     if (m_animate)
     {
-        float rad = m_degToRad(m_angleDeg);
+        const float rad = m_degToRad(m_angleDeg);
         model = mat4RotationY(rad);
     }
 
-    int halfW = buffer.w / 2;
+    Rasterizer rasterizer;
+    RasterizerFrameSettings settings;
+    settings.shadingMode = m_shadingMode;
+    settings.camera = camA;
+    settings.material = m_material;
+    settings.whiteLight = m_whiteLight;
+    settings.redLight = m_redLight;
 
-    Viewport left{ 0,      0, halfW,            buffer.h };
-    Viewport right{ halfW,  0, buffer.w - halfW, buffer.h };
+    rasterizer.beginFrame(buffer, settings);
 
-    renderCubeIntoViewport(buffer, camA, proj, left, model);
-    renderCubeIntoViewport(buffer, camB, proj, right, model);
+    const int halfW = buffer.w / 2;
+    const Viewport left{ 0, 0, halfW, buffer.h };
+    const Viewport right{ halfW, 0, buffer.w - halfW, buffer.h };
+
+    renderCubeIntoViewport(buffer, rasterizer, camA, proj, left, model);
+
+    settings.camera = camB;
+    rasterizer.beginFrame(buffer, settings);
+    renderCubeIntoViewport(buffer, rasterizer, camB, proj, right, model);
 }
 
-// EXTRA B Rotacion
 void RenderPipeline::toggleAnimation()
 {
     m_animate = !m_animate;
@@ -170,5 +282,6 @@ void RenderPipeline::tick(float dtSeconds)
     if (!m_animate) return;
 
     m_angleDeg += m_speedDegPerSec * dtSeconds;
-    if (m_angleDeg > 360.0f) m_angleDeg -= 360.0f;
+    if (m_angleDeg > 360.0f)
+        m_angleDeg -= 360.0f;
 }

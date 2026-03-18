@@ -22,12 +22,17 @@ public:
     Q_INVOKABLE void randomPixels(int count);
     Q_INVOKABLE void processImage(const QString& imagePath);
 
-    // -------- Tarea 3 --------
-    Q_INVOKABLE void toggleDualView();      // EXTRA A
-    Q_INVOKABLE void toggleAnimation();     // EXTRA B
+    Q_INVOKABLE void toggleDualView();
+    Q_INVOKABLE void toggleAnimation();
     Q_INVOKABLE void renderCube();
     Q_INVOKABLE void toggleProjection();
     Q_INVOKABLE void setCameraPreset(int preset);
+
+    Q_INVOKABLE void toggleShadingMode();
+    Q_INVOKABLE void increaseSpecularIntensity();
+    Q_INVOKABLE void decreaseSpecularIntensity();
+    Q_INVOKABLE void toggleWhiteLight();
+    Q_INVOKABLE void toggleRedLight();
 
 protected:
     void geometryChange(const QRectF& newGeometry, const QRectF& oldGeometry) override;
@@ -35,12 +40,12 @@ protected:
 private:
     void ensureBuffer();
 
+private:
     PixelBuffer m_buffer;
     RenderPipeline m_pipe;
 
-    bool m_dualView = false; // EXTRA A
+    bool m_dualView = false;
 
-    // EXTRA B
     QTimer m_animTimer;
     QElapsedTimer m_elapsed;
 };
