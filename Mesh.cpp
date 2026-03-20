@@ -1,8 +1,9 @@
-#include "CubeMesh.h"
+#include "Mesh.h"
 
-QVector<Triangle> CubeMesh::build(float hx, float hy, float hz)
+Mesh MeshFactory::buildCube(float hx, float hy, float hz)
 {
-    QVector<Triangle> tris;
+    Mesh mesh;
+    auto& tris = mesh.triangles;
     tris.reserve(12);
 
     // ============================================
@@ -131,5 +132,5 @@ QVector<Triangle> CubeMesh::build(float hx, float hy, float hz)
         makeVertex(p001, nBottom, magenta)
         });
 
-    return tris;
+    return mesh;
 }

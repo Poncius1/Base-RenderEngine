@@ -17,6 +17,11 @@ namespace
     }
 }
 
+RenderPipeline::RenderPipeline()
+{
+    m_mesh = MeshFactory::buildCube();
+}
+
 bool RenderPipeline::ndcToPixel(float ndcX, float ndcY, float ndcZ,
     const PixelBuffer& b, const Viewport& vp,
     int& outX, int& outY)
@@ -70,6 +75,11 @@ void RenderPipeline::decreaseSpecularIntensity()
     m_material.specularIntensity -= 0.1f;
     if (m_material.specularIntensity < 0.0f)
         m_material.specularIntensity = 0.0f;
+}
+
+void RenderPipeline::setMesh(const Mesh& mesh)
+{
+    m_mesh = mesh;
 }
 
 void RenderPipeline::setCameraPreset(int preset)
@@ -183,9 +193,10 @@ bool RenderPipeline::projectVertexToScreen(
     return true;
 }
 
-void RenderPipeline::renderCubeIntoViewport(
+void RenderPipeline::renderMeshIntoViewport(
     PixelBuffer& buffer,
     Rasterizer& rasterizer,
+    const Mesh& mesh,
     const Camera& camera,
     const Projection& projection,
     const Viewport& vp,
@@ -198,9 +209,7 @@ void RenderPipeline::renderCubeIntoViewport(
     const Mat4 PV = mat4Mul(P, V);
     const Mat4 MVP = mat4Mul(PV, model);
 
-    const QVector<Triangle> tris = CubeMesh::build();
-
-    for (const Triangle& tri : tris)
+    for (const Triangle& tri : mesh.triangles)
     {
         ScreenVertex sv0, sv1, sv2;
 
@@ -215,7 +224,7 @@ void RenderPipeline::renderCubeIntoViewport(
     }
 }
 
-void RenderPipeline::renderCube(PixelBuffer& buffer) const
+void RenderPipeline::render(PixelBuffer& buffer) const
 {
     buffer.clear(kBlackARGB);
 
@@ -237,10 +246,10 @@ void RenderPipeline::renderCube(PixelBuffer& buffer) const
     rasterizer.beginFrame(buffer, settings);
 
     const Viewport vp{ 0, 0, buffer.w, buffer.h };
-    renderCubeIntoViewport(buffer, rasterizer, cam, proj, vp, model);
+    renderMeshIntoViewport(buffer, rasterizer, m_mesh, cam, proj, vp, model);
 }
 
-void RenderPipeline::renderCubeDual(PixelBuffer& buffer) const
+void RenderPipeline::renderDual(PixelBuffer& buffer) const
 {
     buffer.clear(kBlackARGB);
 
@@ -265,11 +274,11 @@ void RenderPipeline::renderCubeDual(PixelBuffer& buffer) const
     const Viewport left{ 0, 0, halfW, buffer.h };
     const Viewport right{ halfW, 0, buffer.w - halfW, buffer.h };
 
-    renderCubeIntoViewport(buffer, rasterizer, camA, proj, left, model);
+    renderMeshIntoViewport(buffer, rasterizer, m_mesh, camA, proj, left, model);
 
     settings.camera = camB;
     rasterizer.beginFrame(buffer, settings);
-    renderCubeIntoViewport(buffer, rasterizer, camB, proj, right, model);
+    renderMeshIntoViewport(buffer, rasterizer, m_mesh, camB, proj, right, model);
 }
 
 void RenderPipeline::toggleAnimation()

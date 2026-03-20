@@ -22,9 +22,11 @@ public:
     Q_INVOKABLE void randomPixels(int count);
     Q_INVOKABLE void processImage(const QString& imagePath);
 
+    Q_INVOKABLE void loadObj(const QString& path);
+
     Q_INVOKABLE void toggleDualView();
     Q_INVOKABLE void toggleAnimation();
-    Q_INVOKABLE void renderCube();
+    Q_INVOKABLE void renderScene();
     Q_INVOKABLE void toggleProjection();
     Q_INVOKABLE void setCameraPreset(int preset);
 

@@ -3,7 +3,7 @@
 #include "Matematicas.h"
 #include "Camera.h"
 #include "Projection.h"
-#include "CubeMesh.h"
+#include "Mesh.h"
 #include "Rasterizer.h"
 #include "Lighting.h"
 
@@ -18,6 +18,8 @@ struct Viewport
 class RenderPipeline
 {
 public:
+    RenderPipeline();
+
     Camera cam{};
     Projection proj{};
 
@@ -40,8 +42,11 @@ public:
     void decreaseSpecularIntensity();
     float specularIntensity() const { return m_material.specularIntensity; }
 
-    void renderCube(PixelBuffer& buffer) const;
-    void renderCubeDual(PixelBuffer& buffer) const;
+    void setMesh(const Mesh& mesh);
+    const Mesh& mesh() const { return m_mesh; }
+
+    void render(PixelBuffer& buffer) const;
+    void renderDual(PixelBuffer& buffer) const;
 
     void toggleAnimation();
     bool isAnimating() const { return m_animate; }
@@ -62,15 +67,18 @@ private:
         const Viewport& vp,
         ScreenVertex& outVertex) const;
 
-    void renderCubeIntoViewport(
+    void renderMeshIntoViewport(
         PixelBuffer& buffer,
         Rasterizer& rasterizer,
+        const Mesh& mesh,
         const Camera& camera,
         const Projection& projection,
         const Viewport& vp,
         const Mat4& model) const;
 
 private:
+    Mesh m_mesh;
+
     Light m_whiteLight{
         true,
         { -1.0f, -1.0f, -1.0f },

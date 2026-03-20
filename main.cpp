@@ -40,7 +40,7 @@ int main(int argc, char* argv[])
 
     // Demo inicial
     canvas->clear();
-    canvas->renderCube();
+    canvas->loadObj("D:/Visual Projects/Graficacion1/Models/Cube_Quads.obj");
 
     return app.exec();
 }

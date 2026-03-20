@@ -8,6 +8,8 @@
 #include <algorithm>
 #include <cstdint>
 
+#include "ObjLoader.h"
+
 namespace
 {
     constexpr uint32_t kBlackARGB = 0xFF000000u;
@@ -27,20 +29,16 @@ PixelCanvas::PixelCanvas(QQuickItem* parent)
     setAntialiasing(false);
     setRenderTarget(QQuickPaintedItem::FramebufferObject);
 
-    // Cámara principal
     m_pipe.setCameraPreset(0);
-
-    // Cámaras iniciales para vista dual
     m_pipe.setCameraPresetA(0);
     m_pipe.setCameraPresetB(0);
 
-    // Timer de animación (~60 FPS)
     m_animTimer.setInterval(16);
 
     connect(&m_animTimer, &QTimer::timeout, this, [this]() {
         const float dt = float(m_elapsed.restart()) / 1000.0f;
         m_pipe.tick(dt);
-        renderCube();
+        renderScene();
         });
 
     m_elapsed.start();
@@ -50,7 +48,7 @@ void PixelCanvas::geometryChange(const QRectF& newGeometry, const QRectF& oldGeo
 {
     QQuickPaintedItem::geometryChange(newGeometry, oldGeometry);
     ensureBuffer();
-    renderCube();
+    renderScene();
 }
 
 void PixelCanvas::ensureBuffer()
@@ -95,6 +93,23 @@ void PixelCanvas::processImage(const QString& imagePath)
     }
 
     update();
+}
+
+void PixelCanvas::loadObj(const QString& path)
+{
+    bool ok = false;
+    const Mesh mesh = ObjLoader::loadFromFile(path, &ok);
+
+    if (!ok)
+    {
+        qWarning() << "Fallo al cargar OBJ:" << path;
+        return;
+    }
+
+    qDebug() << "OBJ cargado correctamente. Triangulos:" << mesh.triangles.size();
+
+    m_pipe.setMesh(mesh);
+    renderScene();
 }
 
 void PixelCanvas::paint(QPainter* painter)
@@ -156,7 +171,7 @@ void PixelCanvas::randomPixels(int count)
 void PixelCanvas::toggleDualView()
 {
     m_dualView = !m_dualView;
-    renderCube();
+    renderScene();
 }
 
 void PixelCanvas::toggleAnimation()
@@ -171,19 +186,19 @@ void PixelCanvas::toggleAnimation()
     else
     {
         m_animTimer.stop();
-        renderCube();
+        renderScene();
     }
 }
 
-void PixelCanvas::renderCube()
+void PixelCanvas::renderScene()
 {
     ensureBuffer();
     m_buffer.clear(kBlackARGB);
 
     if (m_dualView)
-        m_pipe.renderCubeDual(m_buffer);
+        m_pipe.renderDual(m_buffer);
     else
-        m_pipe.renderCube(m_buffer);
+        m_pipe.render(m_buffer);
 
     update();
 }
@@ -191,7 +206,7 @@ void PixelCanvas::renderCube()
 void PixelCanvas::toggleProjection()
 {
     m_pipe.toggleProjection();
-    renderCube();
+    renderScene();
 }
 
 void PixelCanvas::setCameraPreset(int preset)
@@ -206,35 +221,35 @@ void PixelCanvas::setCameraPreset(int preset)
         m_pipe.setCameraPreset(preset);
     }
 
-   
+    renderScene();
 }
 
 void PixelCanvas::toggleShadingMode()
 {
     m_pipe.toggleShadingMode();
-    renderCube();
+    renderScene();
 }
 
 void PixelCanvas::increaseSpecularIntensity()
 {
     m_pipe.increaseSpecularIntensity();
-    renderCube();
+    renderScene();
 }
 
 void PixelCanvas::decreaseSpecularIntensity()
 {
     m_pipe.decreaseSpecularIntensity();
-    renderCube();
+    renderScene();
 }
 
 void PixelCanvas::toggleWhiteLight()
 {
     m_pipe.toggleWhiteLight();
-    renderCube();
+    renderScene();
 }
 
 void PixelCanvas::toggleRedLight()
 {
     m_pipe.toggleRedLight();
-    renderCube();
+    renderScene();
 }
