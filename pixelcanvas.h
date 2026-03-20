@@ -7,6 +7,7 @@
 
 #include "pixelbuffer.h"
 #include "RenderPipeline.h"
+#include "ImageFilter.h"
 
 class PixelCanvas final : public QQuickPaintedItem
 {
@@ -36,17 +37,24 @@ public:
     Q_INVOKABLE void toggleWhiteLight();
     Q_INVOKABLE void toggleRedLight();
 
+    Q_INVOKABLE void toggleFilter();
+
 protected:
     void geometryChange(const QRectF& newGeometry, const QRectF& oldGeometry) override;
 
 private:
-    void ensureBuffer();
+    void ensureBuffers();
+    const PixelBuffer& displayBuffer() const;
 
 private:
-    PixelBuffer m_buffer;
+    PixelBuffer m_renderBuffer;
+    PixelBuffer m_displayBuffer;
+
     RenderPipeline m_pipe;
+    ImageFilter m_filter;
 
     bool m_dualView = false;
+    bool m_filterEnabled = false;
 
     QTimer m_animTimer;
     QElapsedTimer m_elapsed;

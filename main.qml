@@ -58,9 +58,14 @@ Window {
             case Qt.Key_Down:
                 canvas.decreaseSpecularIntensity()
                 break
-            }
+            
+            case Qt.Key_F:
+                canvas.toggleFilter()
+                break
+            
+            
 
             event.accepted = true
         }
     }
-}
+}}

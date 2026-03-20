@@ -94,6 +94,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="Camera.cpp" />
+    <ClCompile Include="ImageFilter.cpp" />
     <ClCompile Include="Mesh.cpp" />
     <ClCompile Include="Lighting.cpp" />
     <ClCompile Include="main.cpp" />
@@ -115,6 +116,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Camera.h" />
+    <ClInclude Include="ImageFilter.h" />
     <ClInclude Include="Mesh.h" />
     <ClInclude Include="Lighting.h" />
     <ClInclude Include="Matematicas.h" />

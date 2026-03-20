@@ -47,25 +47,36 @@ PixelCanvas::PixelCanvas(QQuickItem* parent)
 void PixelCanvas::geometryChange(const QRectF& newGeometry, const QRectF& oldGeometry)
 {
     QQuickPaintedItem::geometryChange(newGeometry, oldGeometry);
-    ensureBuffer();
+    ensureBuffers();
     renderScene();
 }
 
-void PixelCanvas::ensureBuffer()
+void PixelCanvas::ensureBuffers()
 {
     const int w = std::max(1, int(width()));
     const int h = std::max(1, int(height()));
 
-    if (m_buffer.w == w && m_buffer.h == h)
-        return;
+    if (m_renderBuffer.w != w || m_renderBuffer.h != h)
+    {
+        m_renderBuffer.resize(w, h);
+        m_renderBuffer.clear(kBlackARGB);
+    }
 
-    m_buffer.resize(w, h);
-    m_buffer.clear(kBlackARGB);
+    if (m_displayBuffer.w != w || m_displayBuffer.h != h)
+    {
+        m_displayBuffer.resize(w, h);
+        m_displayBuffer.clear(kBlackARGB);
+    }
+}
+
+const PixelBuffer& PixelCanvas::displayBuffer() const
+{
+    return m_filterEnabled ? m_displayBuffer : m_renderBuffer;
 }
 
 void PixelCanvas::processImage(const QString& imagePath)
 {
-    ensureBuffer();
+    ensureBuffers();
 
     QImage originalImage(imagePath);
     if (originalImage.isNull()) {
@@ -73,8 +84,10 @@ void PixelCanvas::processImage(const QString& imagePath)
         return;
     }
 
-    const int copyW = std::min(m_buffer.w, originalImage.width());
-    const int copyH = std::min(m_buffer.h, originalImage.height());
+    const int copyW = std::min(m_renderBuffer.w, originalImage.width());
+    const int copyH = std::min(m_renderBuffer.h, originalImage.height());
+
+    m_renderBuffer.clear(kBlackARGB);
 
     for (int y = 0; y < copyH; ++y) {
         for (int x = 0; x < copyW; ++x) {
@@ -88,9 +101,12 @@ void PixelCanvas::processImage(const QString& imagePath)
                 pixelColor = QColor(0, 0, 0);
             }
 
-            m_buffer.setPixel(x, y, toARGB32(pixelColor));
+            m_renderBuffer.setPixel(x, y, toARGB32(pixelColor));
         }
     }
+
+    if (m_filterEnabled)
+        m_filter.apply(m_renderBuffer, m_displayBuffer);
 
     update();
 }
@@ -114,16 +130,18 @@ void PixelCanvas::loadObj(const QString& path)
 
 void PixelCanvas::paint(QPainter* painter)
 {
-    ensureBuffer();
+    ensureBuffers();
 
     painter->setRenderHint(QPainter::Antialiasing, false);
     painter->setRenderHint(QPainter::SmoothPixmapTransform, false);
 
+    const PixelBuffer& buffer = displayBuffer();
+
     const QImage img(
-        reinterpret_cast<const uchar*>(m_buffer.data.data()),
-        m_buffer.w,
-        m_buffer.h,
-        m_buffer.w * int(sizeof(uint32_t)),
+        reinterpret_cast<const uchar*>(buffer.data.data()),
+        buffer.w,
+        buffer.h,
+        buffer.w * int(sizeof(uint32_t)),
         QImage::Format_ARGB32
     );
 
@@ -132,26 +150,31 @@ void PixelCanvas::paint(QPainter* painter)
 
 void PixelCanvas::clear()
 {
-    ensureBuffer();
-    m_buffer.clear(kBlackARGB);
+    ensureBuffers();
+    m_renderBuffer.clear(kBlackARGB);
+    m_displayBuffer.clear(kBlackARGB);
     update();
 }
 
 void PixelCanvas::setPixel(int x, int y, const QColor& color)
 {
-    ensureBuffer();
-    m_buffer.setPixel(x, y, toARGB32(color));
+    ensureBuffers();
+    m_renderBuffer.setPixel(x, y, toARGB32(color));
+
+    if (m_filterEnabled)
+        m_filter.apply(m_renderBuffer, m_displayBuffer);
+
     update();
 }
 
 void PixelCanvas::randomPixels(int count)
 {
-    ensureBuffer();
+    ensureBuffers();
     count = std::max(0, count);
 
     for (int i = 0; i < count; ++i) {
-        const int x = QRandomGenerator::global()->bounded(m_buffer.w);
-        const int y = QRandomGenerator::global()->bounded(m_buffer.h);
+        const int x = QRandomGenerator::global()->bounded(m_renderBuffer.w);
+        const int y = QRandomGenerator::global()->bounded(m_renderBuffer.h);
 
         QColor c(
             QRandomGenerator::global()->bounded(256),
@@ -162,8 +185,11 @@ void PixelCanvas::randomPixels(int count)
         if (c == Qt::black)
             c = Qt::white;
 
-        m_buffer.setPixel(x, y, toARGB32(c));
+        m_renderBuffer.setPixel(x, y, toARGB32(c));
     }
+
+    if (m_filterEnabled)
+        m_filter.apply(m_renderBuffer, m_displayBuffer);
 
     update();
 }
@@ -192,13 +218,16 @@ void PixelCanvas::toggleAnimation()
 
 void PixelCanvas::renderScene()
 {
-    ensureBuffer();
-    m_buffer.clear(kBlackARGB);
+    ensureBuffers();
+    m_renderBuffer.clear(kBlackARGB);
 
     if (m_dualView)
-        m_pipe.renderDual(m_buffer);
+        m_pipe.renderDual(m_renderBuffer);
     else
-        m_pipe.render(m_buffer);
+        m_pipe.render(m_renderBuffer);
+
+    if (m_filterEnabled)
+        m_filter.apply(m_renderBuffer, m_displayBuffer);
 
     update();
 }
@@ -252,4 +281,14 @@ void PixelCanvas::toggleRedLight()
 {
     m_pipe.toggleRedLight();
     renderScene();
+}
+
+void PixelCanvas::toggleFilter()
+{
+    m_filterEnabled = !m_filterEnabled;
+
+    if (m_filterEnabled)
+        m_filter.apply(m_renderBuffer, m_displayBuffer);
+
+    update();
 }
