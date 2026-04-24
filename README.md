@@ -1,10 +1,11 @@
 
 # Base-RenderEngine
 
-Este repositorio contiene la implementación hasta la **Tarea 2** del curso de **Graficación Computacional**.
+Este repositorio contiene la implementación del **Proyecto Final** del curso de **Graficación Computacional**.
 
-La rama principal (`main`) contiene siempre la versión más reciente de la tarea actual.  
-Para tareas posteriores se crearán nuevas ramas específicas por cada entrega.
+Incluye un **render engine completamente desarrollado en CPU**, con pipeline gráfico propio, rasterización, iluminación y soporte para modelos OBJ.
+
+La rama principal (`master`) contiene la versión final entregable del proyecto.
 
 ---
 
@@ -13,30 +14,74 @@ Para tareas posteriores se crearán nuevas ramas específicas por cada entrega.
 ```
 
 Base-RenderEngine/
-├── LICENSE.txt                # Licencia del proyecto
-├── Graficacion1.slnx          # Solución de Visual Studio
-├── Graficacion1.vcxproj       # Proyecto de Visual Studio (Qt + QML)
-├── main.cpp                   # Punto de entrada de la aplicación
-├── main.qml                   # Interfaz gráfica (Qt Quick)
-├── pixelbuffer.h              # Estructura del buffer de píxeles
-├── pixelcanvas.h              # Declaración de la clase PixelCanvas
-├── pixelcanvas.cpp            # Implementación del canvas
-├── qml.qrc                    # Archivo de recursos QML
-└── README.md                  # Documentación del repositorio
+├── assets/                    # Modelos (.obj)
+│   └── models/
+├── src/
+│   ├── core/                 # Matemáticas (Vec, Mat, utilidades)
+│   ├── renderer/             # Pipeline de render
+│   │   ├── pipeline/         # RenderEngine
+│   │   ├── stages/           # Rasterizer, VertexProcessor
+│   │   └── utils/            # Texturas procedurales
+│   ├── scene/                # Cámara, luces, materiales
+│   ├── loaders/              # Carga de modelos OBJ
+│   ├── app/                  # SceneBuilder y presets
+│   └── ui/                   # Qt + QML (interfaz)
+├── Graficacion1.slnx         # Solución de Visual Studio
+├── Graficacion1.vcxproj      # Proyecto (Qt + QML)
+├── main.cpp                  # Punto de entrada
+├── main.qml                  # Interfaz gráfica
+├── README.md                 # Documentación
+└── LICENSE.txt
+---
+```
 
-````
+## Características principales
+
+- Pipeline gráfico completo en CPU:
+  - Transformaciones (Model, View, Projection)
+  - Rasterización por triángulos
+  - Z-buffer
+- Iluminación:
+  - Modelo de Phong
+  - Soporte para múltiples luces
+- Shading:
+  - Gouraud 
+  - Phong 
+- Cámaras:
+  - Front-Right 3/4
+  - Right Profile
+  - Rear View
+- Proyecciones:
+  - Perspectiva
+  - Ortográfica
+- Materiales:
+  - Material A (verde)
+  - Material B (perla/azulado)
+- Texturas:
+  - Procedurales 
+- UI en Qt/QML:
+  - Control de cámaras
+  - Materiales
+  - Animación
+  - Luces
+
+## 🎮 Controles
+
+| Tecla | Acción |
+|------|--------|
+| C | Cambiar cámara |
+| M | Cambiar material |
+| P | Cambiar proyección |
+| L | Activar/desactivar luz azul |
+| R | Activar/desactivar rotación |
 
 ---
 
-## clonar y compilar el proyecto
+## 📦 Clonar y compilar el proyecto
 
-### Clonar el repositorio
-
-Abrir una terminal (Git Bash o CMD) y ejecutar:
 ```bash
 git clone https://github.com/Poncius1/Base-RenderEngine.git
 cd Base-RenderEngine
-````
 
 ---
 
@@ -45,10 +90,9 @@ cd Base-RenderEngine
 1. Abrir **Visual Studio**.
 2. Seleccionar **Open a project or solution**.
 3. Abrir el archivo:
-
-```
 Graficacion1.slnx
 ```
+
 
 ---
 
