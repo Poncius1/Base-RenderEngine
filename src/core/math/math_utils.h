@@ -17,7 +17,7 @@ namespace gfx
     }
 
     // Limita un valor al rango [0, 1].
-    // Muy útil para color e iluminación.
+    // útil para color e iluminación.
     inline constexpr float saturate(float value)
     {
         return clamp(value, 0.0f, 1.0f);

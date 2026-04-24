@@ -10,61 +10,42 @@
 
 namespace gfx
 {
-    // Procesador de vértices.
-    // Convierte un vértice de espacio local a espacio de pantalla.
+    // Procesador de vértices, convierte un vértice de espacio local a espacio de pantalla
     class VertexProcessor
     {
     public:
         static ScreenVertex process(
             const Vertex& vertex,
-            const Transform& transform,
+            const Mat4& model,
+            const Mat4& mvp,
             const Camera& camera,
             const Viewport& viewport)
         {
-            // 1. Modelo (local → mundo)
-            const Mat4 model = transform.toMatrix();
-
-            // 2. Vista
-            const Mat4 view = makeView(camera);
-
-            // 3. Proyección
-            const Mat4 projection = makeProjection(camera);
-
-            const Mat4 mvp = projection * view * model;
-
-            // Posición en mundo
             const Vec3 worldPos = transformPoint(model, vertex.position);
-
-            // Normal en mundo
             const Vec3 worldNormal = normalize(transformVector(model, vertex.normal));
 
-            // Clip space
             const Vec4 clip = mvp * Vec4(vertex.position.x, vertex.position.y, vertex.position.z, 1.0f);
 
-            // NDC
             Vec3 ndc{};
             if (!nearlyEqual(clip.w, 0.0f))
             {
                 ndc = { clip.x / clip.w, clip.y / clip.w, clip.z / clip.w };
             }
 
-            // Viewport transform
             const float sx = viewport.x + (ndc.x * 0.5f + 0.5f) * viewport.width;
             const float sy = viewport.y + (1.0f - (ndc.y * 0.5f + 0.5f)) * viewport.height;
-            const float sz = ndc.z;
 
             ScreenVertex out{};
-            out.screenPosition = { sx, sy, sz };
+            out.screenPosition = { sx, sy, ndc.z };
             out.worldPosition = worldPos;
             out.worldNormal = worldNormal;
             out.uv = vertex.uv;
-            out.color = colors::White(); // se usa en Gouraud
+            out.color = colors::White();
 
             return out;
         }
 
-    private:
-        // Construye matriz de vista tipo lookAt.
+        //construye matriz de vista tipo lookAt
         static Mat4 makeView(const Camera& cam)
         {
             const Vec3 z = normalize(cam.eye - cam.target);
@@ -84,7 +65,7 @@ namespace gfx
             return view;
         }
 
-        // Construye matriz de proyección.
+        //construye matriz de proyección
         static Mat4 makeProjection(const Camera& cam)
         {
             Mat4 proj{};

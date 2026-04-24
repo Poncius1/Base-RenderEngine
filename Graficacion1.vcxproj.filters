@@ -24,12 +24,6 @@
     <Filter Include="src">
       <UniqueIdentifier>{53ee9f4c-a162-42d5-9b2d-988eee3ae19d}</UniqueIdentifier>
     </Filter>
-    <Filter Include="src\core">
-      <UniqueIdentifier>{e385ca4f-820b-41f1-ace7-60ee7b80aecc}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="src\core\math">
-      <UniqueIdentifier>{30968e11-da75-4eda-981a-8ece2f6ffb3a}</UniqueIdentifier>
-    </Filter>
     <Filter Include="src\scene">
       <UniqueIdentifier>{51cfea44-2160-4fe9-a52c-701290467223}</UniqueIdentifier>
     </Filter>
@@ -41,12 +35,6 @@
     </Filter>
     <Filter Include="src\ui">
       <UniqueIdentifier>{231856a9-136b-4115-bd08-3456ffe9ecb6}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="src\core\image">
-      <UniqueIdentifier>{7063c047-7385-4845-8e34-a52f579308fe}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="src\core\utils">
-      <UniqueIdentifier>{636373e7-d913-4d4b-a816-dee5aa585abb}</UniqueIdentifier>
     </Filter>
     <Filter Include="src\renderer\pipeline">
       <UniqueIdentifier>{62763cba-9d72-4e79-9891-b308f0246495}</UniqueIdentifier>
@@ -68,6 +56,21 @@
     </Filter>
     <Filter Include="src\assets\models">
       <UniqueIdentifier>{3aa25afe-df18-4ae0-b91b-1cc7112d01c3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\renderer\pipeline\core">
+      <UniqueIdentifier>{e385ca4f-820b-41f1-ace7-60ee7b80aecc}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\renderer\pipeline\core\math">
+      <UniqueIdentifier>{30968e11-da75-4eda-981a-8ece2f6ffb3a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\renderer\pipeline\core\image">
+      <UniqueIdentifier>{7063c047-7385-4845-8e34-a52f579308fe}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\renderer\pipeline\core\utils">
+      <UniqueIdentifier>{636373e7-d913-4d4b-a816-dee5aa585abb}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\renderer\utils">
+      <UniqueIdentifier>{80d00ea1-3b8a-4d13-bb66-9a8399d43e3a}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -103,28 +106,28 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\core\math\vec3.h">
-      <Filter>src\core\math</Filter>
+      <Filter>src\renderer\pipeline\core\math</Filter>
     </ClInclude>
     <ClInclude Include="src\core\math\mat4.h">
-      <Filter>src\core\math</Filter>
+      <Filter>src\renderer\pipeline\core\math</Filter>
     </ClInclude>
     <ClInclude Include="src\core\math\vec2.h">
-      <Filter>src\core\math</Filter>
+      <Filter>src\renderer\pipeline\core\math</Filter>
     </ClInclude>
     <ClInclude Include="src\core\math\vec4.h">
-      <Filter>src\core\math</Filter>
+      <Filter>src\renderer\pipeline\core\math</Filter>
     </ClInclude>
     <ClInclude Include="src\core\math\math_utils.h">
-      <Filter>src\core\math</Filter>
+      <Filter>src\renderer\pipeline\core\math</Filter>
     </ClInclude>
     <ClInclude Include="src\core\image\pixel_buffer.h">
-      <Filter>src\core\image</Filter>
+      <Filter>src\renderer\pipeline\core\image</Filter>
     </ClInclude>
     <ClInclude Include="src\core\image\color.h">
-      <Filter>src\core\image</Filter>
+      <Filter>src\renderer\pipeline\core\image</Filter>
     </ClInclude>
     <ClInclude Include="src\core\image\depth_buffer.h">
-      <Filter>src\core\image</Filter>
+      <Filter>src\renderer\pipeline\core\image</Filter>
     </ClInclude>
     <ClInclude Include="src\scene\camera.h">
       <Filter>src\scene</Filter>
@@ -180,6 +183,9 @@
     <ClInclude Include="src\app\scene_presets.h">
       <Filter>src\app</Filter>
     </ClInclude>
+    <ClInclude Include="src\renderer\utils\procedural_texture.h">
+      <Filter>src\renderer\utils</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="src\ui\qml\Main.qml">
@@ -189,6 +195,9 @@
   <ItemGroup>
     <ClCompile Include="src\app\scene_presets.cpp">
       <Filter>src\app</Filter>
+    </ClCompile>
+    <ClCompile Include="src\renderer\utils\procedural_texture.cpp">
+      <Filter>src\renderer\utils</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

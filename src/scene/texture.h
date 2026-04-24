@@ -6,8 +6,7 @@
 
 namespace gfx
 {
-    // Textura basada en un PixelBuffer.
-    // Permite muestrear color usando coordenadas UV.
+    //textura basada en PixelBuffer
     class Texture
     {
     public:
@@ -18,7 +17,7 @@ namespace gfx
         {
         }
 
-        // Asigna el contenido del buffer.
+        //asigna el contenido del buffer
         void setBuffer(const PixelBuffer& buffer)
         {
             m_buffer = buffer;
@@ -29,8 +28,8 @@ namespace gfx
             return m_buffer;
         }
 
-        // Muestra la textura usando coordenadas UV.
-        // UV esperadas en rango [0,1].
+        //muestra la textura usando coordenadas UV
+        // UV esperadas en rango [0,1]
         Color sample(const Vec2& uv) const
         {
             if (m_buffer.empty())
@@ -53,7 +52,7 @@ namespace gfx
     private:
         PixelBuffer m_buffer;
 
-        // Convierte ARGB (uint32) a Color flotante.
+        //convierte ARGB (uint32) a Color flotante
         static Color unpackColor(uint32_t argb)
         {
             const float a = ((argb >> 24) & 0xFF) / 255.0f;

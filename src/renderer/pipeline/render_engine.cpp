@@ -1,16 +1,27 @@
 #include "renderer/pipeline/render_engine.h"
 
+#include <algorithm>
+#include <cmath>
 #include <vector>
-
+#include "renderer/utils/procedural_texture.h"
 #include "renderer/stages/rasterizer.h"
 #include "renderer/stages/vertex_processor.h"
 
 namespace gfx
 {
+    namespace
+    {
+        //umbral para considerar un mesh pesado
+        constexpr size_t kHeavyMeshTriangleCount = 3000;
+
+    }
+
     void RenderEngine::render(const Scene& scene)
     {
+        //inicializa buffers por frame
         beginFrame();
 
+        //obtiene camara activa
         const Camera* camera = scene.activeCamera();
         if (!camera || !m_viewport.isValid())
         {
@@ -19,8 +30,10 @@ namespace gfx
 
         Rasterizer rasterizer;
 
+        //recorre todos los objetos de la escena
         for (const Object3D& obj : scene.objects)
         {
+            //omite objetos invisibles o sin mesh
             if (!obj.visible || obj.mesh.empty())
             {
                 continue;
@@ -30,28 +43,56 @@ namespace gfx
             const Material& material = obj.currentMaterial();
             const Texture* texture = obj.currentTexture();
 
-            // Caché de vértices transformados por frame.
-            std::vector<ScreenVertex> processedVertices(mesh.vertices.size());
+            //copia settings globales para modificarlos por objeto
+            RenderSettings objectSettings = m_settings;
 
+            const bool isHeavyMesh = mesh.triangleCount() >= kHeavyMeshTriangleCount;
+
+            //ajustes para modelos grandes
+            if (isHeavyMesh)
+            {
+                objectSettings.shadingMode = ShadingMode::Gouraud;
+                objectSettings.backFaceCullingEnabled = false;
+                objectSettings.depthTestEnabled = true;
+            }
+
+            //construye matrices de transformacion
+            const Mat4 model = obj.transform.toMatrix();
+            const Mat4 view = VertexProcessor::makeView(*camera);
+            const Mat4 projection = VertexProcessor::makeProjection(*camera);
+            const Mat4 mvp = projection * view * model;
+
+            //cache de vertices procesados
+            std::vector<ScreenVertex> processedVertices;
+            processedVertices.resize(mesh.vertices.size());
+
+            //procesamiento de vertices
             for (size_t vertexIndex = 0; vertexIndex < mesh.vertices.size(); ++vertexIndex)
             {
                 processedVertices[vertexIndex] =
                     VertexProcessor::process(
                         mesh.vertices[vertexIndex],
-                        obj.transform,
+                        model,
+                        mvp,
                         *camera,
                         m_viewport
                     );
 
-                if (m_settings.shadingMode == ShadingMode::Gouraud)
+                //gouraud calcula iluminacion por vertice
+                if (objectSettings.shadingMode == ShadingMode::Gouraud)
                 {
                     Color baseColor = material.diffuse;
 
-                    if (texture != nullptr)
+                    //usa textura procedural si esta activa
+                    if (material.useTexture)
                     {
-                        baseColor = texture->sample(processedVertices[vertexIndex].uv);
+                        baseColor = proceduralTextureForMaterial(
+                            material,
+                            processedVertices[vertexIndex].worldNormal
+                        );
                     }
 
+                    //calcula iluminacion
                     processedVertices[vertexIndex].color =
                         LightingModel::evaluate(
                             processedVertices[vertexIndex].worldPosition,
@@ -64,7 +105,7 @@ namespace gfx
                 }
             }
 
-            // Rasterización usando triángulos precomputados del mesh.
+            //rasterizacion de triangulos
             for (size_t triangleIndex = 0; triangleIndex < mesh.triangleCount(); ++triangleIndex)
             {
                 const MeshTriangle& tri = mesh.getIndexedTriangle(triangleIndex);
@@ -77,7 +118,7 @@ namespace gfx
                     m_colorBuffer,
                     m_depthBuffer,
                     m_viewport,
-                    m_settings,
+                    objectSettings,
                     *camera,
                     scene.lights,
                     material,

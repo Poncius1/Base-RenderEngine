@@ -8,9 +8,7 @@
 
 namespace gfx
 {
-    // Renderer principal del proyecto.
-    // Su responsabilidad es orquestar el proceso de render de una escena
-    // sobre un framebuffer y un depth buffer.
+    // Renderer principal del proyecto, responsable de orquestar el proceso de render de una escena sobre un framebuffer y un depth buffer.
     class RenderEngine
     {
     public:
@@ -80,7 +78,7 @@ namespace gfx
             }
         }
 
-        // Solo declaración aquí.
+        
         void render(const Scene& scene);
 
     private:

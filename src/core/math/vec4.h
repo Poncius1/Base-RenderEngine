@@ -3,7 +3,7 @@
 namespace gfx
 {
     // Vector 4D.
-    // Se usa sobre todo para coordenadas homogéneas y transformaciones con Mat4.
+    // coordenadas homogéneas y transformaciones con Mat4
     struct Vec4
     {
         float x = 0.0f;
@@ -17,19 +17,19 @@ namespace gfx
         }
     };
 
-    // Suma componente a componente.
+    //suma componente a componente
     inline constexpr Vec4 operator+(const Vec4& a, const Vec4& b)
     {
         return { a.x + b.x, a.y + b.y, a.z + b.z, a.w + b.w };
     }
 
-    // Resta componente a componente.
+    //resta componente a componente
     inline constexpr Vec4 operator-(const Vec4& a, const Vec4& b)
     {
         return { a.x - b.x, a.y - b.y, a.z - b.z, a.w - b.w };
     }
 
-    // Multiplicación por escalar.
+    //multiplicación por escalar
     inline constexpr Vec4 operator*(const Vec4& v, float s)
     {
         return { v.x * s, v.y * s, v.z * s, v.w * s };
@@ -40,7 +40,7 @@ namespace gfx
         return v * s;
     }
 
-    // División por escalar.
+    //división por escalar
     inline constexpr Vec4 operator/(const Vec4& v, float s)
     {
         return { v.x / s, v.y / s, v.z / s, v.w / s };

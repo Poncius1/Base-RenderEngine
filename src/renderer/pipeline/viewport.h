@@ -3,7 +3,6 @@
 namespace gfx
 {
     // Región rectangular del framebuffer donde se dibuja la imagen.
-    // Permite renderizar a pantalla completa o dividir la vista en varias áreas.
     struct Viewport
     {
         int x = 0;

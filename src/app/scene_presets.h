@@ -14,11 +14,12 @@ namespace gfx
         static Material makeMaterialA();
         static Material makeMaterialB();
 
-        static Camera makeFrontPerspectiveCamera(float distance);
-        static Camera makeSideOrthographicCamera(float extent);
-        static Camera makeTopOrthographicCamera(float extent);
+        static Camera makeFrontRightCamera(float distance);
+        static Camera makeRightProfileCamera(float distance);
+        static Camera makeRearCamera(float distance);
 
         static Light makeWhiteMainLight();
+        static Light makeBasicLight();
         static Light makeBlueSecondaryLight();
 
         static std::string texturePathMaterialA();

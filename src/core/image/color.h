@@ -49,7 +49,6 @@ namespace gfx
     }
 
     // Empaqueta un color flotante RGBA a formato ARGB de 32 bits.
-    // Este formato es conveniente para framebuffers tipo QImage::Format_ARGB32.
     inline uint32_t packColorARGB(const Color& color)
     {
         const Color clamped = saturateColor(color);

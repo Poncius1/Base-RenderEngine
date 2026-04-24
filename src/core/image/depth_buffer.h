@@ -8,7 +8,6 @@ namespace gfx
 {
     // Z-buffer.
     // Guarda la profundidad más cercana escrita en cada pixel.
-    // Se usa para resolver visibilidad entre fragmentos.
     class DepthBuffer
     {
     public:

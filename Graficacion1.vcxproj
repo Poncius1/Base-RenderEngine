@@ -69,6 +69,11 @@
       <AdditionalIncludeDirectories>$(ProjectDir)src</AdditionalIncludeDirectories>
     </ClCompile>
   </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <ClCompile>
+      <AdditionalIncludeDirectories>$(ProjectDir)src</AdditionalIncludeDirectories>
+    </ClCompile>
+  </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'" Label="Configuration">
     <ClCompile>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
@@ -104,6 +109,7 @@
     <ClCompile Include="src\loaders\texture_loader.cpp" />
     <ClCompile Include="src\renderer\pipeline\render_engine.cpp" />
     <ClCompile Include="src\renderer\stages\rasterizer.cpp" />
+    <ClCompile Include="src\renderer\utils\procedural_texture.cpp" />
     <ClCompile Include="src\ui\qt\main.cpp" />
     <ClCompile Include="src\ui\qt\pixel_canvas.cpp" />
     <None Include="src\ui\qml\Main.qml" />
@@ -128,6 +134,7 @@
     <ClInclude Include="src\renderer\stages\lighting_model.h" />
     <ClInclude Include="src\renderer\stages\rasterizer.h" />
     <ClInclude Include="src\renderer\stages\vertex_processor.h" />
+    <ClInclude Include="src\renderer\utils\procedural_texture.h" />
     <ClInclude Include="src\scene\camera.h" />
     <ClInclude Include="src\scene\light.h" />
     <ClInclude Include="src\scene\material.h" />

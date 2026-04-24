@@ -9,7 +9,7 @@ namespace gfx
     // usadas por el sombreado tipo Phong
     struct Material
     {
-        Color ambient = { 0.0f, 0.0f, 0.0f, 1.0f };
+        Color ambient = { 0.3f, 0.3f, 0.3f, 1.0f };
         Color diffuse = { 0.5f, 0.5f, 0.5f, 1.0f };
         Color specular = { 0.7f, 0.7f, 0.7f, 1.0f };
 

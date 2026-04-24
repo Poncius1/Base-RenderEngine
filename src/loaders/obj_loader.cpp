@@ -1,10 +1,11 @@
 #include "loaders/obj_loader.h"
-
+#include <algorithm>
 #include <fstream>
-#include <sstream>
 #include <string>
 #include <vector>
 #include <unordered_map>
+#include <cstdint>
+#include <cstdlib>
 
 #include "core/math/vec2.h"
 #include "core/math/vec3.h"
@@ -13,7 +14,7 @@ namespace gfx
 {
     namespace
     {
-        // Clave para reutilizar vértices ya construidos.
+        // Clave única para evitar duplicar vértices
         struct VertexKey
         {
             int positionIndex = -1;
@@ -28,235 +29,273 @@ namespace gfx
             }
         };
 
+        // Hash para usar VertexKey en unordered_map
         struct VertexKeyHasher
         {
             std::size_t operator()(const VertexKey& key) const
             {
-                const std::size_t h1 = std::hash<int>{}(key.positionIndex);
-                const std::size_t h2 = std::hash<int>{}(key.texCoordIndex);
-                const std::size_t h3 = std::hash<int>{}(key.normalIndex);
-
-                return h1 ^ (h2 << 1) ^ (h3 << 2);
+                std::size_t h = 1469598103934665603ull;
+                h ^= static_cast<std::size_t>(key.positionIndex + 0x9e3779b9); h *= 1099511628211ull;
+                h ^= static_cast<std::size_t>(key.texCoordIndex + 0x9e3779b9); h *= 1099511628211ull;
+                h ^= static_cast<std::size_t>(key.normalIndex + 0x9e3779b9); h *= 1099511628211ull;
+                return h;
             }
         };
 
-        // Convierte índice OBJ 1-based a índice 0-based.
-        // También soporta índices negativos relativos al final del arreglo.
+        // Convierte índices OBJ (1-based o negativos) a índices válidos
         int resolveObjIndex(int objIndex, int elementCount)
         {
-            if (objIndex > 0)
-            {
-                return objIndex - 1;
-            }
-
-            if (objIndex < 0)
-            {
-                return elementCount + objIndex;
-            }
-
+            if (objIndex > 0) return objIndex - 1;
+            if (objIndex < 0) return elementCount + objIndex;
             return -1;
         }
 
-        // Calcula una normal de respaldo para una cara si el OBJ no trae normales.
+        // Calcula normal si el modelo no la tiene
         Vec3 computeFallbackNormal(const Vec3& a, const Vec3& b, const Vec3& c)
         {
-            const Vec3 e1 = b - a;
-            const Vec3 e2 = c - a;
-            return normalize(cross(e1, e2));
+            return normalize(cross(b - a, c - a));
+        }
+
+        // Avanza espacios en parsing
+        void skipSpaces(const char*& p)
+        {
+            while (*p == ' ' || *p == '\t') ++p;
+        }
+
+        // Parseo rápido de enteros
+        int parseIntFast(const char*& p)
+        {
+            skipSpaces(p);
+
+            int sign = 1;
+            if (*p == '-') { sign = -1; ++p; }
+            else if (*p == '+') { ++p; }
+
+            int value = 0;
+            while (*p >= '0' && *p <= '9')
+            {
+                value = value * 10 + (*p - '0');
+                ++p;
+            }
+
+            return value * sign;
+        }
+
+        // Parseo rápido de floats
+        float parseFloatFast(const char*& p)
+        {
+            skipSpaces(p);
+            char* end = nullptr;
+            float value = std::strtof(p, &end);
+            p = end;
+            return value;
+        }
+
+        // Parsea un token de cara (v/vt/vn)
+        bool parseFaceTokenFast(const char*& p, ObjLoader::FaceIndex& outIndex)
+        {
+            skipSpaces(p);
+
+            if (*p == '\0' || *p == '\r' || *p == '\n')
+                return false;
+
+            outIndex = {};
+            outIndex.positionIndex = parseIntFast(p);
+
+            if (*p == '/')
+            {
+                ++p;
+
+                if (*p != '/')
+                    outIndex.texCoordIndex = parseIntFast(p);
+
+                if (*p == '/')
+                {
+                    ++p;
+                    outIndex.normalIndex = parseIntFast(p);
+                }
+            }
+
+            // Avanza al siguiente token
+            while (*p != '\0' && *p != ' ' && *p != '\t' && *p != '\r' && *p != '\n')
+                ++p;
+
+            return outIndex.positionIndex != 0;
+        }
+
+        // Construye un vértice completo
+        Vertex buildVertexFast(
+            const ObjLoader::FaceIndex& faceIndex,
+            const std::vector<Vec3>& positions,
+            const std::vector<Vec2>& texCoords,
+            const std::vector<Vec3>& normals,
+            const Vec3& fallbackNormal)
+        {
+            Vertex vertex{};
+
+            int positionIndex = resolveObjIndex(faceIndex.positionIndex, positions.size());
+            if (positionIndex >= 0 && positionIndex < (int)positions.size())
+                vertex.position = positions[positionIndex];
+
+            int texCoordIndex = resolveObjIndex(faceIndex.texCoordIndex, texCoords.size());
+            if (texCoordIndex >= 0 && texCoordIndex < (int)texCoords.size())
+                vertex.uv = texCoords[texCoordIndex];
+
+            int normalIndex = resolveObjIndex(faceIndex.normalIndex, normals.size());
+            if (normalIndex >= 0 && normalIndex < (int)normals.size())
+                vertex.normal = normals[normalIndex];
+            else
+                vertex.normal = fallbackNormal;
+
+            return vertex;
+        }
+
+        // Cache para no duplicar vértices
+        uint32_t getOrCreateVertex(
+            const ObjLoader::FaceIndex& faceIndex,
+            const std::vector<Vec3>& positions,
+            const std::vector<Vec2>& texCoords,
+            const std::vector<Vec3>& normals,
+            const Vec3& fallbackNormal,
+            std::unordered_map<VertexKey, uint32_t, VertexKeyHasher>& vertexCache,
+            Mesh& mesh)
+        {
+            VertexKey key{ faceIndex.positionIndex, faceIndex.texCoordIndex, faceIndex.normalIndex };
+
+            auto it = vertexCache.find(key);
+            if (it != vertexCache.end())
+                return it->second;
+
+            Vertex vertex = buildVertexFast(faceIndex, positions, texCoords, normals, fallbackNormal);
+
+            uint32_t index = mesh.vertices.size();
+            mesh.vertices.push_back(vertex);
+            vertexCache.emplace(key, index);
+
+            return index;
+        }
+
+        // Normaliza el modelo (centrado y escalado)
+        void normalizeMesh(Mesh& mesh, float targetSize)
+        {
+            if (mesh.vertices.empty()) return;
+
+            Vec3 minP = mesh.vertices[0].position;
+            Vec3 maxP = mesh.vertices[0].position;
+
+            for (const Vertex& v : mesh.vertices)
+            {
+                minP.x = std::min(minP.x, v.position.x);
+                minP.y = std::min(minP.y, v.position.y);
+                minP.z = std::min(minP.z, v.position.z);
+
+                maxP.x = std::max(maxP.x, v.position.x);
+                maxP.y = std::max(maxP.y, v.position.y);
+                maxP.z = std::max(maxP.z, v.position.z);
+            }
+
+            Vec3 size = { maxP.x - minP.x, maxP.y - minP.y, maxP.z - minP.z };
+            float maxSize = std::max({ size.x, size.y, size.z });
+
+            if (maxSize <= 0.00001f) return;
+
+            float scale = targetSize / maxSize;
+
+            float centerX = (minP.x + maxP.x) * 0.5f;
+            float centerZ = (minP.z + maxP.z) * 0.5f;
+            float bottomY = minP.y;
+
+            for (Vertex& v : mesh.vertices)
+            {
+                v.position.x = (v.position.x - centerX) * scale;
+                v.position.y = (v.position.y - bottomY) * scale;
+                v.position.z = (v.position.z - centerZ) * scale;
+            }
         }
     }
 
+    // Función principal de carga OBJ
     Mesh ObjLoader::loadFromFile(const std::string& filePath)
     {
         Mesh mesh;
 
-        std::ifstream file(filePath);
+        std::ifstream file(filePath, std::ios::binary);
         if (!file.is_open())
-        {
             return mesh;
-        }
 
         std::vector<Vec3> positions;
         std::vector<Vec2> texCoords;
         std::vector<Vec3> normals;
 
+        // Reservas para performance
+        positions.reserve(100000);
+        texCoords.reserve(100000);
+        normals.reserve(100000);
+        mesh.vertices.reserve(100000);
+        mesh.indices.reserve(300000);
+
         std::unordered_map<VertexKey, uint32_t, VertexKeyHasher> vertexCache;
+        vertexCache.reserve(100000);
 
         std::string line;
+        std::vector<FaceIndex> faceIndices;
+
         while (std::getline(file, line))
         {
-            if (line.empty() || line[0] == '#')
-            {
-                continue;
-            }
+            if (line.empty() || line[0] == '#') continue;
 
-            std::istringstream lineStream(line);
-            std::string prefix;
-            lineStream >> prefix;
+            const char* p = line.c_str();
 
-            if (prefix == "v")
+            // Posiciones
+            if (p[0] == 'v' && (p[1] == ' ' || p[1] == '\t'))
             {
-                Vec3 position{};
-                lineStream >> position.x >> position.y >> position.z;
-                positions.push_back(position);
+                p += 2;
+                positions.push_back({ parseFloatFast(p), parseFloatFast(p), parseFloatFast(p) });
             }
-            else if (prefix == "vt")
+            // UVs
+            else if (p[0] == 'v' && p[1] == 't')
             {
-                Vec2 uv{};
-                lineStream >> uv.x >> uv.y;
-                texCoords.push_back(uv);
+                p += 3;
+                texCoords.push_back({ parseFloatFast(p), parseFloatFast(p) });
             }
-            else if (prefix == "vn")
+            // Normales
+            else if (p[0] == 'v' && p[1] == 'n')
             {
-                Vec3 normal{};
-                lineStream >> normal.x >> normal.y >> normal.z;
-                normals.push_back(normalize(normal));
+                p += 3;
+                normals.push_back(normalize({ parseFloatFast(p), parseFloatFast(p), parseFloatFast(p) }));
             }
-            else if (prefix == "f")
+            // Caras
+            else if (p[0] == 'f')
             {
-                std::vector<FaceIndex> faceIndices;
-                std::string token;
+                p += 2;
+                faceIndices.clear();
 
-                while (lineStream >> token)
+                FaceIndex faceIndex{};
+                while (parseFaceTokenFast(p, faceIndex))
                 {
-                    FaceIndex faceIndex;
-                    if (parseFaceToken(token, faceIndex))
-                    {
-                        faceIndices.push_back(faceIndex);
-                    }
+                    faceIndices.push_back(faceIndex);
+                    skipSpaces(p);
                 }
 
-                if (faceIndices.size() < 3)
-                {
-                    continue;
-                }
+                if (faceIndices.size() < 3) continue;
 
-                // Normal fallback a partir de los primeros tres vértices de la cara.
-                const int i0 = resolveObjIndex(faceIndices[0].positionIndex, static_cast<int>(positions.size()));
-                const int i1 = resolveObjIndex(faceIndices[1].positionIndex, static_cast<int>(positions.size()));
-                const int i2 = resolveObjIndex(faceIndices[2].positionIndex, static_cast<int>(positions.size()));
-
-                if (i0 < 0 || i1 < 0 || i2 < 0)
-                {
-                    continue;
-                }
-
-                const Vec3 fallbackNormal = computeFallbackNormal(
-                    positions[static_cast<size_t>(i0)],
-                    positions[static_cast<size_t>(i1)],
-                    positions[static_cast<size_t>(i2)]
-                );
-
-                // Triangulación en abanico.
+                // Triangulación tipo abanico
                 for (size_t i = 1; i + 1 < faceIndices.size(); ++i)
                 {
-                    const FaceIndex triFace[3] =
-                    {
-                        faceIndices[0],
-                        faceIndices[i],
-                        faceIndices[i + 1]
-                    };
+                    uint32_t a = getOrCreateVertex(faceIndices[0], positions, texCoords, normals, {}, vertexCache, mesh);
+                    uint32_t b = getOrCreateVertex(faceIndices[i], positions, texCoords, normals, {}, vertexCache, mesh);
+                    uint32_t c = getOrCreateVertex(faceIndices[i + 1], positions, texCoords, normals, {}, vertexCache, mesh);
 
-                    for (int corner = 0; corner < 3; ++corner)
-                    {
-                        const VertexKey key
-                        {
-                            triFace[corner].positionIndex,
-                            triFace[corner].texCoordIndex,
-                            triFace[corner].normalIndex
-                        };
-
-                        auto it = vertexCache.find(key);
-                        if (it != vertexCache.end())
-                        {
-                            mesh.indices.push_back(it->second);
-                            continue;
-                        }
-
-                        const Vertex vertex = buildVertex(
-                            triFace[corner],
-                            positions,
-                            texCoords,
-                            normals,
-                            fallbackNormal
-                        );
-
-                        const uint32_t newIndex = static_cast<uint32_t>(mesh.vertices.size());
-                        mesh.vertices.push_back(vertex);
-                        mesh.indices.push_back(newIndex);
-                        vertexCache.emplace(key, newIndex);
-                    }
+                    mesh.indices.push_back(a);
+                    mesh.indices.push_back(b);
+                    mesh.indices.push_back(c);
                 }
             }
         }
+
         mesh.finalize();
+        normalizeMesh(mesh, 2.6f);
+
         return mesh;
-    }
-
-    bool ObjLoader::parseFaceToken(const std::string& token, FaceIndex& outIndex)
-    {
-        outIndex = {};
-
-        std::stringstream tokenStream(token);
-        std::string part;
-        std::vector<std::string> parts;
-
-        while (std::getline(tokenStream, part, '/'))
-        {
-            parts.push_back(part);
-        }
-
-        if (parts.empty() || parts[0].empty())
-        {
-            return false;
-        }
-
-        outIndex.positionIndex = std::stoi(parts[0]);
-
-        if (parts.size() > 1 && !parts[1].empty())
-        {
-            outIndex.texCoordIndex = std::stoi(parts[1]);
-        }
-
-        if (parts.size() > 2 && !parts[2].empty())
-        {
-            outIndex.normalIndex = std::stoi(parts[2]);
-        }
-
-        return true;
-    }
-
-    Vertex ObjLoader::buildVertex(
-        const FaceIndex& faceIndex,
-        const std::vector<Vec3>& positions,
-        const std::vector<Vec2>& texCoords,
-        const std::vector<Vec3>& normals,
-        const Vec3& fallbackNormal)
-    {
-        Vertex vertex{};
-
-        const int positionIndex = resolveObjIndex(faceIndex.positionIndex, static_cast<int>(positions.size()));
-        if (positionIndex >= 0 && positionIndex < static_cast<int>(positions.size()))
-        {
-            vertex.position = positions[static_cast<size_t>(positionIndex)];
-        }
-
-        const int texCoordIndex = resolveObjIndex(faceIndex.texCoordIndex, static_cast<int>(texCoords.size()));
-        if (texCoordIndex >= 0 && texCoordIndex < static_cast<int>(texCoords.size()))
-        {
-            vertex.uv = texCoords[static_cast<size_t>(texCoordIndex)];
-        }
-
-        const int normalIndex = resolveObjIndex(faceIndex.normalIndex, static_cast<int>(normals.size()));
-        if (normalIndex >= 0 && normalIndex < static_cast<int>(normals.size()))
-        {
-            vertex.normal = normals[static_cast<size_t>(normalIndex)];
-        }
-        else
-        {
-            vertex.normal = fallbackNormal;
-        }
-
-        return vertex;
     }
 }

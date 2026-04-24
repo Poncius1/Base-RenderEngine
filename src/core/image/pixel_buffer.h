@@ -8,9 +8,8 @@
 
 namespace gfx
 {
-    // Framebuffer de color.
-    // Almacena un arreglo lineal de pixeles en formato ARGB de 32 bits.
-    // Es el buffer principal donde el renderer escribe la imagen final.
+    // Framebuffer de color buffer principal 
+    // Almacena un arreglo lineal de pixeles en formato ARGB de 32 bits
     class PixelBuffer
     {
     public:
@@ -21,7 +20,7 @@ namespace gfx
             resize(width, height);
         }
 
-        // Cambia el tamaño del buffer y reinicializa su memoria.
+        // Cambia el tamaño del buffer y reinicializa su memoria
         void resize(int width, int height)
         {
             m_width = std::max(0, width);
@@ -29,19 +28,19 @@ namespace gfx
             m_pixels.assign(static_cast<size_t>(m_width * m_height), 0u);
         }
 
-        // Limpia todo el framebuffer con un color empaquetado.
+        // Limpia todo el framebuffer con un color empaquetado
         void clear(uint32_t argb)
         {
             std::fill(m_pixels.begin(), m_pixels.end(), argb);
         }
 
-        // Limpia todo el framebuffer con un Color flotante.
+        // Limpia todo el framebuffer con un Color flotante
         void clear(const Color& color)
         {
             clear(packColorARGB(color));
         }
 
-        // Escribe un pixel si está dentro de los límites del buffer.
+        // Escribe un pixel si está dentro de los límites del buffer
         void setPixel(int x, int y, uint32_t argb)
         {
             if (!inBounds(x, y))
@@ -52,18 +51,18 @@ namespace gfx
             m_pixels[static_cast<size_t>(y * m_width + x)] = argb;
         }
 
-        // Sobrecarga para escribir usando Color flotante.
+        // Sobrecarga para escribir usando Color flotante
         void setPixel(int x, int y, const Color& color)
         {
             setPixel(x, y, packColorARGB(color));
         }
 
-        // Regresa el pixel empaquetado en la posición solicitada.
-        // Si está fuera de rango, regresa 0.
+        // Regresa el pixel empaquetado en la posición solicitada
         uint32_t getPixel(int x, int y) const
         {
             if (!inBounds(x, y))
             {
+                // Si está fuera de rango, regresa 0.
                 return 0u;
             }
 

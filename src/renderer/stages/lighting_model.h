@@ -13,8 +13,8 @@
 
 namespace gfx
 {
-    // Modelo de iluminación tipo Phong.
-    // Calcula ambiente + difusa + especular para una lista de luces activas.
+    //Modelo de iluminación tipo Phong
+    //Calcula ambiente + difusa + especular para una lista de luces activas
     class LightingModel
     {
     public:
@@ -29,8 +29,9 @@ namespace gfx
             const Vec3 N = normalize(worldNormal);
             const Vec3 V = normalize(camera.eye - worldPosition);
 
-            // Componente ambiente.
+            //componente ambiente
             Vec3 result = hadamard(colorToVec3(baseColor), colorToVec3(material.ambient));
+            result += colorToVec3(baseColor) * 0.30f;
 
             for (const Light& light : lights)
             {
@@ -83,11 +84,11 @@ namespace gfx
             const Vec3 materialDiffuse = colorToVec3(material.diffuse);
             const Vec3 materialSpecular = colorToVec3(material.specular);
 
-            // Difusa.
+            //difusa
             const Vec3 diffuse =
                 hadamard(hadamard(base, materialDiffuse), lightColor) * ndotl;
 
-            // Especular.
+            //especular
             const Vec3 reflection =
                 normalize((2.0f * dot(normal, lightDirection) * normal) - lightDirection);
 

@@ -11,37 +11,22 @@ namespace gfx
 {
     namespace
     {
-        Vec3 computeMeshCenter(const Mesh& mesh)
+		// Calcula los bounds (min y max) de un mesh.
+        void computeBounds(const Mesh& mesh, Vec3& minP, Vec3& maxP)
         {
-            return mesh.bounds.center;
-        }
+            minP = mesh.vertices[0].position;
+            maxP = mesh.vertices[0].position;
 
-        float computeMeshRadius(const Mesh& mesh)
-        {
-            if (mesh.vertices.empty())
+            for (const Vertex& v : mesh.vertices)
             {
-                return 1.0f;
+                minP.x = std::min(minP.x, v.position.x);
+                minP.y = std::min(minP.y, v.position.y);
+                minP.z = std::min(minP.z, v.position.z);
+
+                maxP.x = std::max(maxP.x, v.position.x);
+                maxP.y = std::max(maxP.y, v.position.y);
+                maxP.z = std::max(maxP.z, v.position.z);
             }
-
-            const Vec3 center = mesh.bounds.center;
-            float maxDistanceSquared = 0.0f;
-
-            for (const Vertex& vertex : mesh.vertices)
-            {
-                const Vec3 d = vertex.position - center;
-                const float dist2 = dot(d, d);
-                maxDistanceSquared = std::max(maxDistanceSquared, dist2);
-            }
-
-            return std::sqrt(std::max(maxDistanceSquared, 1e-6f));
-        }
-
-        float computeCameraDistanceForSphere(float radius, float fovYRadians, float fitFactor)
-        {
-            // Distancia para que la esfera entre razonablemente en pantalla.
-            const float safeRadius = std::max(radius, 1e-4f);
-            const float safeFov = std::max(fovYRadians, 0.1f);
-            return (safeRadius / std::tan(safeFov * 0.5f)) * fitFactor;
         }
     }
 
@@ -57,37 +42,6 @@ namespace gfx
         return scene;
     }
 
-    void SceneBuilder::addDefaultCameras(Scene& scene)
-    {
-        if (scene.objects.empty())
-        {
-            scene.cameras.push_back(ProjectScenePresets::makeFrontPerspectiveCamera(3.0f));
-            scene.cameras.push_back(ProjectScenePresets::makeSideOrthographicCamera(2.0f));
-            scene.cameras.push_back(ProjectScenePresets::makeTopOrthographicCamera(2.0f));
-            return;
-        }
-
-        const Object3D& object = scene.objects[0];
-
-        // El objeto ya está escalado, así que usamos su escala para ajustar el radio final.
-        const float objectScale = object.transform.scale.x;
-        const float originalRadius = computeMeshRadius(object.mesh);
-        const float finalRadius = originalRadius * objectScale;
-
-        const float fov = 60.0f * 3.14159265358979323846f / 180.0f;
-        const float perspectiveDistance = computeCameraDistanceForSphere(finalRadius, fov, 2.0f);
-
-        scene.cameras.push_back(ProjectScenePresets::makeFrontPerspectiveCamera(perspectiveDistance));
-        scene.cameras.push_back(ProjectScenePresets::makeSideOrthographicCamera(finalRadius * 1.6f));
-        scene.cameras.push_back(ProjectScenePresets::makeTopOrthographicCamera(finalRadius * 1.6f));
-    }
-
-    void SceneBuilder::addDefaultLights(Scene& scene)
-    {
-        scene.lights.push_back(ProjectScenePresets::makeWhiteMainLight());
-        scene.lights.push_back(ProjectScenePresets::makeBlueSecondaryLight());
-    }
-
     void SceneBuilder::addMainObject(Scene& scene, const Mesh& mesh)
     {
         Object3D object;
@@ -95,24 +49,63 @@ namespace gfx
         object.visible = true;
         object.useTexture = true;
 
-        const Vec3 meshCenter = computeMeshCenter(mesh);
-        const float meshRadius = computeMeshRadius(mesh);
+        Vec3 minP{};
+        Vec3 maxP{};
+        computeBounds(mesh, minP, maxP);
 
-        // Normalizamos todos los modelos a un radio visual objetivo consistente.
-        const float targetRadius = 1.0f;
-        const float uniformScale = targetRadius / std::max(meshRadius, 1e-6f);
+        const Vec3 center =
+        {
+            (minP.x + maxP.x) * 0.5f,
+            (minP.y + maxP.y) * 0.5f,
+            (minP.z + maxP.z) * 0.5f
+        };
 
-        object.transform.position = -meshCenter * uniformScale;
+        const Vec3 size =
+        {
+            maxP.x - minP.x,
+            maxP.y - minP.y,
+            maxP.z - minP.z
+        };
+
+        const float maxSize = std::max({ size.x, size.y, size.z, 0.0001f });
+
+        // Tamaño estándar para todos los modelos.
+        const float targetSize = 2.4f;
+        const float scale = targetSize / maxSize;
+
+        // centrar modelo en el origen.
+        object.transform.position =
+        {
+            -center.x * scale,
+            -center.y * scale,
+            -center.z * scale
+        };
+
         object.transform.rotation = { 0.0f, 0.0f, 0.0f };
-        object.transform.scale = { uniformScale, uniformScale, uniformScale };
+        object.transform.scale = { scale, scale, scale };
 
         object.materialA = ProjectScenePresets::makeMaterialA();
         object.materialB = ProjectScenePresets::makeMaterialB();
         object.activeMaterial = MaterialType::MaterialA;
-
-        object.textureA = TextureLoader::loadFromFile(ProjectScenePresets::texturePathMaterialA());
-        object.textureB = TextureLoader::loadFromFile(ProjectScenePresets::texturePathMaterialB());
-
         scene.objects.push_back(object);
+    }
+    
+	// Agrega cámaras predeterminadas a la escena
+    void SceneBuilder::addDefaultCameras(Scene& scene)
+    {
+        const float distance = 10.0f;
+
+        scene.cameras.push_back(ProjectScenePresets::makeFrontRightCamera(distance));
+        scene.cameras.push_back(ProjectScenePresets::makeRightProfileCamera(distance));
+        scene.cameras.push_back(ProjectScenePresets::makeRearCamera(distance));
+    }
+
+	// Agrega luces predeterminadas a la escena
+    void SceneBuilder::addDefaultLights(Scene& scene)
+    {
+        scene.lights.push_back(ProjectScenePresets::makeWhiteMainLight());
+        scene.lights.push_back(ProjectScenePresets::makeBlueSecondaryLight());
+        scene.lights.push_back(ProjectScenePresets::makeBasicLight());
+
     }
 }

@@ -18,25 +18,25 @@ namespace gfx
         }
     };
 
-    // Suma componente a componente.
+    // Suma componente a componente
     inline constexpr Vec3 operator+(const Vec3& a, const Vec3& b)
     {
         return { a.x + b.x, a.y + b.y, a.z + b.z };
     }
 
-    // Resta componente a componente.
+    // Resta componente a componente
     inline constexpr Vec3 operator-(const Vec3& a, const Vec3& b)
     {
         return { a.x - b.x, a.y - b.y, a.z - b.z };
     }
 
-    // Negación unaria.
+    // Negación unaria
     inline constexpr Vec3 operator-(const Vec3& v)
     {
         return { -v.x, -v.y, -v.z };
     }
 
-    // Multiplicación por escalar.
+    // Multiplicación por escalar
     inline constexpr Vec3 operator*(const Vec3& v, float s)
     {
         return { v.x * s, v.y * s, v.z * s };
@@ -47,7 +47,7 @@ namespace gfx
         return v * s;
     }
 
-    // División por escalar.
+    // División por escalar
     inline constexpr Vec3 operator/(const Vec3& v, float s)
     {
         return { v.x / s, v.y / s, v.z / s };
@@ -85,15 +85,13 @@ namespace gfx
         return v;
     }
 
-    // Producto punto.
-    // Muy útil para iluminación, proyecciones y ángulos.
+    // Producto punto
     inline constexpr float dot(const Vec3& a, const Vec3& b)
     {
         return a.x * b.x + a.y * b.y + a.z * b.z;
     }
 
-    // Producto cruz.
-    // Se usa para generar vectores perpendiculares y normales.
+    // Producto cruz
     inline constexpr Vec3 cross(const Vec3& a, const Vec3& b)
     {
         return
@@ -104,7 +102,7 @@ namespace gfx
         };
     }
 
-    // Magnitud al cuadrado.
+    // Magnitud al cuadrado
     inline float lengthSquared(const Vec3& v)
     {
         return dot(v, v);
@@ -116,8 +114,7 @@ namespace gfx
         return std::sqrt(lengthSquared(v));
     }
 
-    // Regresa un vector unitario.
-    // Si la magnitud es casi cero, regresa el vector cero.
+    // Regresa un vector unitario
     inline Vec3 normalize(const Vec3& v)
     {
         const float len = length(v);
@@ -129,14 +126,13 @@ namespace gfx
         return v / len;
     }
 
-    // Multiplicación componente a componente.
-    // Muy útil para color * material o color * intensidad de luz.
+    // Multiplicación componente a componente
     inline constexpr Vec3 hadamard(const Vec3& a, const Vec3& b)
     {
         return { a.x * b.x, a.y * b.y, a.z * b.z };
     }
 
-    // Interpolación lineal entre dos vectores.
+    // Interpolación lineal entre dos vectores
     inline constexpr Vec3 lerp(const Vec3& a, const Vec3& b, float t)
     {
         return a + (b - a) * t;

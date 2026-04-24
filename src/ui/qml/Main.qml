@@ -11,9 +11,22 @@ Window {
     color: "#0B0B0F"
     title: "Angel Ponce - Render Engine"
 
+    property bool loadingModel: false
+
     function loadDefaultModel() {
-        canvas.loadObj("D:/Visual Projects/Graficacion1/assets/models/dragon.obj")
+        loadingModel = true
+        loadTimer.start()
     }
+
+    Timer {
+    id: loadTimer
+    interval: 100
+    repeat: false
+    onTriggered: {
+        canvas.loadObj("D:/Visual Projects/Graficacion1/assets/models/teapot.obj")
+        loadingModel = false
+    }
+}
 
     Component.onCompleted: {
         loadDefaultModel()
@@ -54,63 +67,114 @@ Window {
         }
 
         Rectangle {
-    anchors.left: parent.left
-    anchors.top: parent.top
-    anchors.margins: 18
-    width: 320
-    radius: 16
-    color: "#AA0F172A"
-    border.color: "#334155"
-    border.width: 1
+            anchors.top: parent.top
+            anchors.horizontalCenter: parent.horizontalCenter
+            anchors.topMargin: 18
 
-    Column {
-        anchors.fill: parent
-        anchors.margins: 18
-        spacing: 10
+            width: cameraTitle.width + 42
+            height: 44
+            radius: 22
+            color: "#99000000"
+            border.color: "#334155"
+            border.width: 1
 
-       
+            Text {
+                id: cameraTitle
+                anchors.centerIn: parent
+                text: canvas.activeCameraName
+                color: "white"
+                font.bold: true
+                font.pixelSize: 22
+            }
+        }
 
-       
+        // Settings en esquina
+        Rectangle {
+            anchors.left: parent.left
+            anchors.top: parent.top
+            anchors.margins: 20
+
+            width: 285
+            height: 210
+            radius: 16
+            color: "#990F172A"
+            border.color: "#334155"
+            border.width: 1
+
+            Column {
+                anchors.fill: parent
+                anchors.margins: 18
+                spacing: 10
+
+                Text {
+                    text: "Scene Settings"
+                    color: "#7DBBFF"
+                    font.bold: true
+                    font.pixelSize: 18
+                }
+
+                Rectangle {
+                    width: parent.width
+                    height: 1
+                    color: "#334155"
+                }
+
+                Text { text: "Projection: " + canvas.projectionName; color: "#E5E7EB"; font.pixelSize: 14 }
+                Text { text: "Material: " + canvas.activeMaterialName; color: "#E5E7EB"; font.pixelSize: 14 }
+                Text { text: canvas.blueLightState; color: "#E5E7EB"; font.pixelSize: 14 }
+                Text { text: canvas.animationState; color: "#E5E7EB"; font.pixelSize: 14 }
+            }
+        }
+
+        // Controles abajo en fila
+        Rectangle {
+            anchors.bottom: parent.bottom
+            anchors.horizontalCenter: parent.horizontalCenter
+            anchors.bottomMargin: 18
+
+            height: 54
+            width: controlsRow.width + 44
+            radius: 18
+            color: "#99000000"
+            border.color: "#334155"
+            border.width: 1
+
+            Row {
+                id: controlsRow
+                anchors.centerIn: parent
+                spacing: 26
+
+                Text { text: "[C] Camera"; color: "#E5E7EB"; font.pixelSize: 14 }
+                Text { text: "[M] Material"; color: "#E5E7EB"; font.pixelSize: 14 }
+                Text { text: "[P] Projection"; color: "#E5E7EB"; font.pixelSize: 14 }
+                Text { text: "[L] Blue Light"; color: "#E5E7EB"; font.pixelSize: 14 }
+                Text { text: "[R] Rotation"; color: "#E5E7EB"; font.pixelSize: 14 }
+            }
+        }
 
         Rectangle {
-            width: parent.width
-            height: 1
-            color: "#334155"
+            anchors.fill: parent
+            visible: root.loadingModel
+            color: "#0B0B0F"
+            z: 100
+
+            Column {
+                anchors.centerIn: parent
+                spacing: 18
+
+                Text {
+                    text: "Cargando OBJ..."
+                    color: "white"
+                    font.bold: true
+                    font.pixelSize: 28
+                    anchors.horizontalCenter: parent.horizontalCenter
+                }
+                BusyIndicator {
+                    running: root.loadingModel
+                    anchors.horizontalCenter: parent.horizontalCenter
+                }
+            }
         }
 
-        Text {
-            text: "Estado actual"
-            color: "#93C5FD"
-            font.pixelSize: 16
-            font.bold: true
-        }
-
-        Text { text: "Camara: " + canvas.activeCameraName; color: "white"; font.pixelSize: 15 }
-        Text { text: "Proyeccion: " + canvas.projectionName; color: "white"; font.pixelSize: 15 }
-        Text { text: "Material: " + canvas.activeMaterialName; color: "white"; font.pixelSize: 15 }
-        Text { text: "Textura: " + canvas.activeTextureName; color: "white"; font.pixelSize: 15 }
-        Text { text: canvas.blueLightState; color: "white"; font.pixelSize: 15 }
-        Text { text: canvas.animationState; color: "white"; font.pixelSize: 15 }
-
-        Rectangle {
-            width: parent.width
-            height: 1
-            color: "#334155"
-        }
-
-        Text {
-            text: "Controles"
-            color: "#93C5FD"
-            font.pixelSize: 16
-            font.bold: true
-        }
-
-        Text { text: "[C] Cambiar camara"; color: "#E5E7EB"; font.pixelSize: 14 }
-        Text { text: "[M] Cambiar material"; color: "#E5E7EB"; font.pixelSize: 14 }
-        Text { text: "[P] Cambiar proyeccion"; color: "#E5E7EB"; font.pixelSize: 14 }
-        Text { text: "[L] Encender/apagar luz azul"; color: "#E5E7EB"; font.pixelSize: 14 }
-        Text { text: "[R] Iniciar/parar rotacion"; color: "#E5E7EB"; font.pixelSize: 14 }
-    }
-}
     }
 }

@@ -8,13 +8,13 @@
 
 namespace gfx
 {
-    // Matriz 4x4 en formato fila-columna.
-    // Es la base para transformaciones afines y proyecciones.
+    // matriz 4x4 en formato fila-columna.
+    // base para transformaciones afines y proyecciones
     struct Mat4
     {
         float m[4][4] = {};
 
-        // Regresa la matriz identidad.
+        // regresa la matriz identidad
         static Mat4 identity()
         {
             Mat4 result{};
@@ -26,7 +26,7 @@ namespace gfx
         }
     };
 
-    // Multiplicación de matrices 4x4.
+    // multiplicación de matrices 4x4
     inline Mat4 operator*(const Mat4& a, const Mat4& b)
     {
         Mat4 result{};
@@ -47,7 +47,7 @@ namespace gfx
         return result;
     }
 
-    // Multiplicación matriz por vector homogéneo.
+    // multiplicación matriz por vector homogéneo
     inline Vec4 operator*(const Mat4& matrix, const Vec4& v)
     {
         return
@@ -59,7 +59,7 @@ namespace gfx
         };
     }
 
-    // Construye una matriz de traslación.
+    //construye  matriz de traslación
     inline Mat4 makeTranslation(float tx, float ty, float tz)
     {
         Mat4 result = Mat4::identity();
@@ -69,7 +69,7 @@ namespace gfx
         return result;
     }
 
-    // Construye una matriz de escalamiento.
+    //construye matriz de escalamiento
     inline Mat4 makeScale(float sx, float sy, float sz)
     {
         Mat4 result{};
@@ -80,7 +80,7 @@ namespace gfx
         return result;
     }
 
-    // Construye una rotación respecto al eje X.
+    //construye una rotación respecto al eje X
     inline Mat4 makeRotationX(float radians)
     {
         Mat4 result = Mat4::identity();
@@ -95,7 +95,7 @@ namespace gfx
         return result;
     }
 
-    // Construye una rotación respecto al eje Y.
+    //construye una rotación respecto al eje Y
     inline Mat4 makeRotationY(float radians)
     {
         Mat4 result = Mat4::identity();
@@ -110,7 +110,7 @@ namespace gfx
         return result;
     }
 
-    // Construye una rotación respecto al eje Z.
+    //construye una rotación respecto al eje Z    
     inline Mat4 makeRotationZ(float radians)
     {
         Mat4 result = Mat4::identity();
