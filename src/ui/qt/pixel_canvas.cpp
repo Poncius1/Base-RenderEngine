@@ -251,10 +251,10 @@ namespace gfx
 
         switch (m_scene.activeCameraIndex)
         {
-        case 0: return "front-right 3/4";
-        case 1: return "right profile";
-        case 2: return "rear view";
-        default: return "unknown camera";
+        case 0: return "Front-Right 3/4";
+        case 1: return "Right Profile";
+        case 2: return "Rear View";
+        default: return "Unknown Camera";
         }
     }
 
@@ -264,8 +264,8 @@ namespace gfx
         if (!m_hasScene || m_scene.objects.empty()) return "sin material";
 
         return (m_scene.objects[0].activeMaterial == MaterialType::MaterialA)
-            ? "material a"
-            : "material b";
+            ? "Material A"
+            : "Material B";
     }
 
     //nombre de textura activa
@@ -274,8 +274,8 @@ namespace gfx
         if (!m_hasScene || m_scene.objects.empty()) return "sin textura";
 
         return (m_scene.objects[0].activeMaterial == MaterialType::MaterialA)
-            ? "textura a"
-            : "textura b";
+            ? "Texture A"
+            : "Texture B";
     }
 
     //tipo de proyeccion
@@ -287,8 +287,8 @@ namespace gfx
         if (camera == nullptr) return "no projection";
 
         return (camera->projectionType == ProjectionType::Perspective)
-            ? "perspective"
-            : "orthographic";
+            ? "Perspective"
+            : "Orthographic";
     }
 
     //estado de luz azul
@@ -296,20 +296,20 @@ namespace gfx
     {
         if (!m_hasScene || m_scene.lights.size() < 2)
         {
-            return "luz azul: n/a";
+            return "Blue Light: N/A";
         }
 
         return m_scene.lights[1].enabled
-            ? "luz azul: on"
-            : "luz azul: off";
+            ? "Blue Light: On"
+            : "Blue Light: Off";
     }
 
     //estado de animacion
     QString PixelCanvas::animationState() const
     {
         return m_animationTimer.isActive()
-            ? "animacion: on"
-            : "animacion: off";
+            ? "Animation: On"
+            : "Animation: Off";
     }
 
     //notifica cambio de estado al ui

@@ -23,7 +23,7 @@ Window {
     interval: 100
     repeat: false
     onTriggered: {
-        canvas.loadObj("D:/Visual Projects/Graficacion1/assets/models/teapot.obj")
+        canvas.loadObj("D:/Visual Projects/Graficacion1/assets/models/dragon.obj")
         loadingModel = false
     }
 }

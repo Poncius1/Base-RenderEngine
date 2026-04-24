@@ -1,12 +1,11 @@
 #include "loaders/obj_loader.h"
 #include <algorithm>
-#include <fstream>
-#include <string>
-#include <vector>
-#include <unordered_map>
 #include <cstdint>
 #include <cstdlib>
-
+#include <fstream>
+#include <string>
+#include <unordered_map>
+#include <vector>
 #include "core/math/vec2.h"
 #include "core/math/vec3.h"
 
@@ -14,7 +13,7 @@ namespace gfx
 {
     namespace
     {
-        // Clave única para evitar duplicar vértices
+        //clave unica para evitar duplicar vertices
         struct VertexKey
         {
             int positionIndex = -1;
@@ -29,7 +28,7 @@ namespace gfx
             }
         };
 
-        // Hash para usar VertexKey en unordered_map
+        //hash para usar vertexkey en unordered_map
         struct VertexKeyHasher
         {
             std::size_t operator()(const VertexKey& key) const
@@ -42,7 +41,7 @@ namespace gfx
             }
         };
 
-        // Convierte índices OBJ (1-based o negativos) a índices válidos
+        //convierte indices obj a indices base cero
         int resolveObjIndex(int objIndex, int elementCount)
         {
             if (objIndex > 0) return objIndex - 1;
@@ -50,19 +49,19 @@ namespace gfx
             return -1;
         }
 
-        // Calcula normal si el modelo no la tiene
+        //calcula normal si el obj no trae normales validas
         Vec3 computeFallbackNormal(const Vec3& a, const Vec3& b, const Vec3& c)
         {
             return normalize(cross(b - a, c - a));
         }
 
-        // Avanza espacios en parsing
+        //avanza espacios en parsing
         void skipSpaces(const char*& p)
         {
             while (*p == ' ' || *p == '\t') ++p;
         }
 
-        // Parseo rápido de enteros
+        //parseo rapido de enteros
         int parseIntFast(const char*& p)
         {
             skipSpaces(p);
@@ -81,23 +80,27 @@ namespace gfx
             return value * sign;
         }
 
-        // Parseo rápido de floats
+        //parseo rapido de floats
         float parseFloatFast(const char*& p)
         {
             skipSpaces(p);
+
             char* end = nullptr;
-            float value = std::strtof(p, &end);
+            const float value = std::strtof(p, &end);
             p = end;
+
             return value;
         }
 
-        // Parsea un token de cara (v/vt/vn)
+        //parsea un token de cara v/vt/vn
         bool parseFaceTokenFast(const char*& p, ObjLoader::FaceIndex& outIndex)
         {
             skipSpaces(p);
 
             if (*p == '\0' || *p == '\r' || *p == '\n')
+            {
                 return false;
+            }
 
             outIndex = {};
             outIndex.positionIndex = parseIntFast(p);
@@ -107,7 +110,9 @@ namespace gfx
                 ++p;
 
                 if (*p != '/')
+                {
                     outIndex.texCoordIndex = parseIntFast(p);
+                }
 
                 if (*p == '/')
                 {
@@ -116,14 +121,15 @@ namespace gfx
                 }
             }
 
-            // Avanza al siguiente token
             while (*p != '\0' && *p != ' ' && *p != '\t' && *p != '\r' && *p != '\n')
+            {
                 ++p;
+            }
 
             return outIndex.positionIndex != 0;
         }
 
-        // Construye un vértice completo
+        //construye un vertice completo
         Vertex buildVertexFast(
             const ObjLoader::FaceIndex& faceIndex,
             const std::vector<Vec3>& positions,
@@ -133,24 +139,44 @@ namespace gfx
         {
             Vertex vertex{};
 
-            int positionIndex = resolveObjIndex(faceIndex.positionIndex, positions.size());
-            if (positionIndex >= 0 && positionIndex < (int)positions.size())
-                vertex.position = positions[positionIndex];
+            const int positionIndex = resolveObjIndex(
+                faceIndex.positionIndex,
+                static_cast<int>(positions.size())
+            );
 
-            int texCoordIndex = resolveObjIndex(faceIndex.texCoordIndex, texCoords.size());
-            if (texCoordIndex >= 0 && texCoordIndex < (int)texCoords.size())
-                vertex.uv = texCoords[texCoordIndex];
+            if (positionIndex >= 0 && positionIndex < static_cast<int>(positions.size()))
+            {
+                vertex.position = positions[static_cast<size_t>(positionIndex)];
+            }
 
-            int normalIndex = resolveObjIndex(faceIndex.normalIndex, normals.size());
-            if (normalIndex >= 0 && normalIndex < (int)normals.size())
-                vertex.normal = normals[normalIndex];
+            const int texCoordIndex = resolveObjIndex(
+                faceIndex.texCoordIndex,
+                static_cast<int>(texCoords.size())
+            );
+
+            if (texCoordIndex >= 0 && texCoordIndex < static_cast<int>(texCoords.size()))
+            {
+                vertex.uv = texCoords[static_cast<size_t>(texCoordIndex)];
+            }
+
+            const int normalIndex = resolveObjIndex(
+                faceIndex.normalIndex,
+                static_cast<int>(normals.size())
+            );
+
+            if (normalIndex >= 0 && normalIndex < static_cast<int>(normals.size()))
+            {
+                vertex.normal = normals[static_cast<size_t>(normalIndex)];
+            }
             else
+            {
                 vertex.normal = fallbackNormal;
+            }
 
             return vertex;
         }
 
-        // Cache para no duplicar vértices
+        //cache para no duplicar vertices
         uint32_t getOrCreateVertex(
             const ObjLoader::FaceIndex& faceIndex,
             const std::vector<Vec3>& positions,
@@ -160,25 +186,41 @@ namespace gfx
             std::unordered_map<VertexKey, uint32_t, VertexKeyHasher>& vertexCache,
             Mesh& mesh)
         {
-            VertexKey key{ faceIndex.positionIndex, faceIndex.texCoordIndex, faceIndex.normalIndex };
+            const VertexKey key
+            {
+                faceIndex.positionIndex,
+                faceIndex.texCoordIndex,
+                faceIndex.normalIndex
+            };
 
-            auto it = vertexCache.find(key);
+            const auto it = vertexCache.find(key);
             if (it != vertexCache.end())
+            {
                 return it->second;
+            }
 
-            Vertex vertex = buildVertexFast(faceIndex, positions, texCoords, normals, fallbackNormal);
+            const Vertex vertex = buildVertexFast(
+                faceIndex,
+                positions,
+                texCoords,
+                normals,
+                fallbackNormal
+            );
 
-            uint32_t index = mesh.vertices.size();
+            const uint32_t index = static_cast<uint32_t>(mesh.vertices.size());
             mesh.vertices.push_back(vertex);
             vertexCache.emplace(key, index);
 
             return index;
         }
 
-        // Normaliza el modelo (centrado y escalado)
+        //normaliza el modelo para mantener escala consistente
         void normalizeMesh(Mesh& mesh, float targetSize)
         {
-            if (mesh.vertices.empty()) return;
+            if (mesh.vertices.empty())
+            {
+                return;
+            }
 
             Vec3 minP = mesh.vertices[0].position;
             Vec3 maxP = mesh.vertices[0].position;
@@ -194,16 +236,25 @@ namespace gfx
                 maxP.z = std::max(maxP.z, v.position.z);
             }
 
-            Vec3 size = { maxP.x - minP.x, maxP.y - minP.y, maxP.z - minP.z };
-            float maxSize = std::max({ size.x, size.y, size.z });
+            const Vec3 size =
+            {
+                maxP.x - minP.x,
+                maxP.y - minP.y,
+                maxP.z - minP.z
+            };
 
-            if (maxSize <= 0.00001f) return;
+            const float maxSize = std::max({ size.x, size.y, size.z });
 
-            float scale = targetSize / maxSize;
+            if (maxSize <= 0.00001f)
+            {
+                return;
+            }
 
-            float centerX = (minP.x + maxP.x) * 0.5f;
-            float centerZ = (minP.z + maxP.z) * 0.5f;
-            float bottomY = minP.y;
+            const float scale = targetSize / maxSize;
+
+            const float centerX = (minP.x + maxP.x) * 0.5f;
+            const float centerZ = (minP.z + maxP.z) * 0.5f;
+            const float bottomY = minP.y;
 
             for (Vertex& v : mesh.vertices)
             {
@@ -214,20 +265,22 @@ namespace gfx
         }
     }
 
-    // Función principal de carga OBJ
+    //carga principal del archivo obj
     Mesh ObjLoader::loadFromFile(const std::string& filePath)
     {
         Mesh mesh;
 
         std::ifstream file(filePath, std::ios::binary);
         if (!file.is_open())
+        {
             return mesh;
+        }
 
         std::vector<Vec3> positions;
         std::vector<Vec2> texCoords;
         std::vector<Vec3> normals;
 
-        // Reservas para performance
+        //reservas para reducir realocaciones
         positions.reserve(100000);
         texCoords.reserve(100000);
         normals.reserve(100000);
@@ -238,34 +291,57 @@ namespace gfx
         vertexCache.reserve(100000);
 
         std::string line;
+        line.reserve(512);
+
         std::vector<FaceIndex> faceIndices;
+        faceIndices.reserve(8);
 
         while (std::getline(file, line))
         {
-            if (line.empty() || line[0] == '#') continue;
+            if (line.empty() || line[0] == '#')
+            {
+                continue;
+            }
 
             const char* p = line.c_str();
 
-            // Posiciones
+            //posiciones
             if (p[0] == 'v' && (p[1] == ' ' || p[1] == '\t'))
             {
                 p += 2;
-                positions.push_back({ parseFloatFast(p), parseFloatFast(p), parseFloatFast(p) });
+
+                Vec3 position{};
+                position.x = parseFloatFast(p);
+                position.y = parseFloatFast(p);
+                position.z = parseFloatFast(p);
+
+                positions.push_back(position);
             }
-            // UVs
-            else if (p[0] == 'v' && p[1] == 't')
+            //coordenadas uv
+            else if (p[0] == 'v' && p[1] == 't' && (p[2] == ' ' || p[2] == '\t'))
             {
                 p += 3;
-                texCoords.push_back({ parseFloatFast(p), parseFloatFast(p) });
+
+                Vec2 uv{};
+                uv.x = parseFloatFast(p);
+                uv.y = parseFloatFast(p);
+
+                texCoords.push_back(uv);
             }
-            // Normales
-            else if (p[0] == 'v' && p[1] == 'n')
+            //normales
+            else if (p[0] == 'v' && p[1] == 'n' && (p[2] == ' ' || p[2] == '\t'))
             {
                 p += 3;
-                normals.push_back(normalize({ parseFloatFast(p), parseFloatFast(p), parseFloatFast(p) }));
+
+                Vec3 normal{};
+                normal.x = parseFloatFast(p);
+                normal.y = parseFloatFast(p);
+                normal.z = parseFloatFast(p);
+
+                normals.push_back(normalize(normal));
             }
-            // Caras
-            else if (p[0] == 'f')
+            //caras
+            else if (p[0] == 'f' && (p[1] == ' ' || p[1] == '\t'))
             {
                 p += 2;
                 faceIndices.clear();
@@ -275,16 +351,79 @@ namespace gfx
                 {
                     faceIndices.push_back(faceIndex);
                     skipSpaces(p);
+
+                    if (*p == '\0' || *p == '\r' || *p == '\n')
+                    {
+                        break;
+                    }
                 }
 
-                if (faceIndices.size() < 3) continue;
+                if (faceIndices.size() < 3)
+                {
+                    continue;
+                }
 
-                // Triangulación tipo abanico
+                const int i0 = resolveObjIndex(
+                    faceIndices[0].positionIndex,
+                    static_cast<int>(positions.size())
+                );
+
+                const int i1 = resolveObjIndex(
+                    faceIndices[1].positionIndex,
+                    static_cast<int>(positions.size())
+                );
+
+                const int i2 = resolveObjIndex(
+                    faceIndices[2].positionIndex,
+                    static_cast<int>(positions.size())
+                );
+
+                if (i0 < 0 || i1 < 0 || i2 < 0 ||
+                    i0 >= static_cast<int>(positions.size()) ||
+                    i1 >= static_cast<int>(positions.size()) ||
+                    i2 >= static_cast<int>(positions.size()))
+                {
+                    continue;
+                }
+
+                const Vec3 fallbackNormal = computeFallbackNormal(
+                    positions[static_cast<size_t>(i0)],
+                    positions[static_cast<size_t>(i1)],
+                    positions[static_cast<size_t>(i2)]
+                );
+
+                //triangulacion en abanico
                 for (size_t i = 1; i + 1 < faceIndices.size(); ++i)
                 {
-                    uint32_t a = getOrCreateVertex(faceIndices[0], positions, texCoords, normals, {}, vertexCache, mesh);
-                    uint32_t b = getOrCreateVertex(faceIndices[i], positions, texCoords, normals, {}, vertexCache, mesh);
-                    uint32_t c = getOrCreateVertex(faceIndices[i + 1], positions, texCoords, normals, {}, vertexCache, mesh);
+                    const uint32_t a = getOrCreateVertex(
+                        faceIndices[0],
+                        positions,
+                        texCoords,
+                        normals,
+                        fallbackNormal,
+                        vertexCache,
+                        mesh
+                    );
+
+                    const uint32_t b = getOrCreateVertex(
+                        faceIndices[i],
+                        positions,
+                        texCoords,
+                        normals,
+                        fallbackNormal,
+                        vertexCache,
+                        mesh
+                    );
+
+                    const uint32_t c = getOrCreateVertex(
+                        faceIndices[i + 1],
+                        positions,
+                        texCoords,
+                        normals,
+                        fallbackNormal,
+                        vertexCache,
+                        mesh
+                    );
 
                     mesh.indices.push_back(a);
                     mesh.indices.push_back(b);
@@ -297,5 +436,27 @@ namespace gfx
         normalizeMesh(mesh, 2.6f);
 
         return mesh;
+    }
+
+    bool ObjLoader::parseFaceToken(const std::string& token, FaceIndex& outIndex)
+    {
+        const char* p = token.c_str();
+        return parseFaceTokenFast(p, outIndex);
+    }
+
+    Vertex ObjLoader::buildVertex(
+        const FaceIndex& faceIndex,
+        const std::vector<Vec3>& positions,
+        const std::vector<Vec2>& texCoords,
+        const std::vector<Vec3>& normals,
+        const Vec3& fallbackNormal)
+    {
+        return buildVertexFast(
+            faceIndex,
+            positions,
+            texCoords,
+            normals,
+            fallbackNormal
+        );
     }
 }

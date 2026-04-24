@@ -20,7 +20,7 @@ namespace gfx
         static Mesh loadFromFile(const std::string& filePath);
 
     private:
-        static bool parseFaceTokenFast(const std::string& token, FaceIndex& outIndex);
+        static bool parseFaceToken(const std::string& token, FaceIndex& outIndex);
 
         static Vertex buildVertex(
             const FaceIndex& faceIndex,
