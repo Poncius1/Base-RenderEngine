@@ -64,6 +64,11 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x64'">
   </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <ClCompile>
+      <AdditionalIncludeDirectories>$(ProjectDir)src</AdditionalIncludeDirectories>
+    </ClCompile>
+  </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'" Label="Configuration">
     <ClCompile>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
@@ -93,38 +98,45 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="Camera.cpp" />
-    <ClCompile Include="ImageFilter.cpp" />
-    <ClCompile Include="Mesh.cpp" />
-    <ClCompile Include="Lighting.cpp" />
-    <ClCompile Include="main.cpp" />
-    <ClCompile Include="Matematicas.cpp" />
-    <ClCompile Include="ObjLoader.cpp" />
-    <ClCompile Include="pixelcanvas.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
-    </ClCompile>
-    <ClCompile Include="Projection.cpp" />
-    <ClCompile Include="Rasterizer.cpp" />
-    <ClCompile Include="RenderPipeline.cpp" />
+    <ClCompile Include="src\app\scene_builder.cpp" />
+    <ClCompile Include="src\app\scene_presets.cpp" />
+    <ClCompile Include="src\loaders\obj_loader.cpp" />
+    <ClCompile Include="src\loaders\texture_loader.cpp" />
+    <ClCompile Include="src\renderer\pipeline\render_engine.cpp" />
+    <ClCompile Include="src\renderer\stages\rasterizer.cpp" />
+    <ClCompile Include="src\ui\qt\main.cpp" />
+    <ClCompile Include="src\ui\qt\pixel_canvas.cpp" />
+    <None Include="src\ui\qml\Main.qml" />
     <QtRcc Include="qml.qrc" />
-    <None Include="main.qml" />
   </ItemGroup>
   <ItemGroup>
-    <QtMoc Include="pixelcanvas.h">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
-    </QtMoc>
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="Camera.h" />
-    <ClInclude Include="ImageFilter.h" />
-    <ClInclude Include="Mesh.h" />
-    <ClInclude Include="Lighting.h" />
-    <ClInclude Include="Matematicas.h" />
-    <ClInclude Include="ObjLoader.h" />
-    <ClInclude Include="pixelbuffer.h" />
-    <ClInclude Include="Projection.h" />
-    <ClInclude Include="Rasterizer.h" />
-    <ClInclude Include="RenderPipeline.h" />
+    <ClInclude Include="src\app\scene_builder.h" />
+    <ClInclude Include="src\app\scene_presets.h" />
+    <ClInclude Include="src\core\image\color.h" />
+    <ClInclude Include="src\core\image\depth_buffer.h" />
+    <ClInclude Include="src\core\image\pixel_buffer.h" />
+    <ClInclude Include="src\core\math\mat4.h" />
+    <ClInclude Include="src\core\math\math_utils.h" />
+    <ClInclude Include="src\core\math\vec2.h" />
+    <ClInclude Include="src\core\math\vec3.h" />
+    <ClInclude Include="src\core\math\vec4.h" />
+    <ClInclude Include="src\loaders\obj_loader.h" />
+    <ClInclude Include="src\loaders\texture_loader.h" />
+    <ClInclude Include="src\renderer\pipeline\render_engine.h" />
+    <ClInclude Include="src\renderer\pipeline\render_settings.h" />
+    <ClInclude Include="src\renderer\pipeline\viewport.h" />
+    <ClInclude Include="src\renderer\stages\lighting_model.h" />
+    <ClInclude Include="src\renderer\stages\rasterizer.h" />
+    <ClInclude Include="src\renderer\stages\vertex_processor.h" />
+    <ClInclude Include="src\scene\camera.h" />
+    <ClInclude Include="src\scene\light.h" />
+    <ClInclude Include="src\scene\material.h" />
+    <ClInclude Include="src\scene\mesh.h" />
+    <ClInclude Include="src\scene\object3d.h" />
+    <ClInclude Include="src\scene\scene.h" />
+    <ClInclude Include="src\scene\texture.h" />
+    <ClInclude Include="src\scene\transform.h" />
+    <QtMoc Include="src\ui\qt\pixel_canvas.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Condition="Exists('$(QtMsBuild)\qt.targets')">

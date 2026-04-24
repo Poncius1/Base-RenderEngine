@@ -4,7 +4,7 @@
 #include "Camera.h"
 #include "Projection.h"
 #include "Mesh.h"
-#include "Rasterizer.h"
+#include "RasterizerOld.h"
 #include "Lighting.h"
 
 struct Viewport

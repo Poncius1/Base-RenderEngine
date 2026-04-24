@@ -21,83 +21,174 @@
       <UniqueIdentifier>{639EADAA-A684-42e4-A9AD-28FC9BCB8F7C}</UniqueIdentifier>
       <Extensions>ts</Extensions>
     </Filter>
+    <Filter Include="src">
+      <UniqueIdentifier>{53ee9f4c-a162-42d5-9b2d-988eee3ae19d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\core">
+      <UniqueIdentifier>{e385ca4f-820b-41f1-ace7-60ee7b80aecc}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\core\math">
+      <UniqueIdentifier>{30968e11-da75-4eda-981a-8ece2f6ffb3a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\scene">
+      <UniqueIdentifier>{51cfea44-2160-4fe9-a52c-701290467223}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\renderer">
+      <UniqueIdentifier>{39ba731c-fec0-4606-95a4-7a7374523519}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\app">
+      <UniqueIdentifier>{d71c2b73-1bbe-4694-80a8-7bf79f6def9b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\ui">
+      <UniqueIdentifier>{231856a9-136b-4115-bd08-3456ffe9ecb6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\core\image">
+      <UniqueIdentifier>{7063c047-7385-4845-8e34-a52f579308fe}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\core\utils">
+      <UniqueIdentifier>{636373e7-d913-4d4b-a816-dee5aa585abb}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\renderer\pipeline">
+      <UniqueIdentifier>{62763cba-9d72-4e79-9891-b308f0246495}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\renderer\stages">
+      <UniqueIdentifier>{b1872805-0424-4cd8-b013-6bcc1bb95d6a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\loaders">
+      <UniqueIdentifier>{af6d4e1b-07f6-4da2-98ca-4636adb80ccb}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\ui\qt">
+      <UniqueIdentifier>{fe6171dd-782f-4b6e-8a49-dea8632e34d3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\ui\qml">
+      <UniqueIdentifier>{fe276430-bc98-4a2d-99b3-bc7b0ce81d29}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\assets">
+      <UniqueIdentifier>{997e1f99-8720-4c8f-9df2-bb65df56cd25}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\assets\models">
+      <UniqueIdentifier>{3aa25afe-df18-4ae0-b91b-1cc7112d01c3}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="main.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <QtRcc Include="qml.qrc">
       <Filter>Resource Files</Filter>
     </QtRcc>
-    <None Include="main.qml">
-      <Filter>Source Files</Filter>
-    </None>
-    <ClCompile Include="pixelcanvas.cpp">
-      <Filter>Source Files</Filter>
+    <ClCompile Include="src\renderer\stages\rasterizer.cpp">
+      <Filter>src\renderer\stages</Filter>
     </ClCompile>
-    <ClCompile Include="RenderPipeline.cpp">
-      <Filter>Source Files</Filter>
+    <ClCompile Include="src\renderer\pipeline\render_engine.cpp">
+      <Filter>src\renderer\pipeline</Filter>
     </ClCompile>
-    <ClCompile Include="Matematicas.cpp">
-      <Filter>Source Files</Filter>
+    <ClCompile Include="src\loaders\obj_loader.cpp">
+      <Filter>src\loaders</Filter>
     </ClCompile>
-    <ClCompile Include="Projection.cpp">
-      <Filter>Source Files</Filter>
+    <ClCompile Include="src\app\scene_builder.cpp">
+      <Filter>src\app</Filter>
     </ClCompile>
-    <ClCompile Include="Camera.cpp">
-      <Filter>Source Files</Filter>
+    <ClCompile Include="src\ui\qt\pixel_canvas.cpp">
+      <Filter>src\ui\qt</Filter>
     </ClCompile>
-    <ClCompile Include="Mesh.cpp">
-      <Filter>Source Files</Filter>
+    <ClCompile Include="src\loaders\texture_loader.cpp">
+      <Filter>src\loaders</Filter>
     </ClCompile>
-    <ClCompile Include="Rasterizer.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Lighting.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="ObjLoader.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="ImageFilter.cpp">
-      <Filter>Source Files</Filter>
+    <ClCompile Include="src\ui\qt\main.cpp">
+      <Filter>src\ui\qt</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <QtMoc Include="pixelcanvas.h">
-      <Filter>Header Files</Filter>
+    <QtMoc Include="src\ui\qt\pixel_canvas.h">
+      <Filter>src\ui\qt</Filter>
     </QtMoc>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="pixelbuffer.h">
-      <Filter>Header Files</Filter>
+    <ClInclude Include="src\core\math\vec3.h">
+      <Filter>src\core\math</Filter>
     </ClInclude>
-    <ClInclude Include="RenderPipeline.h">
-      <Filter>Header Files</Filter>
+    <ClInclude Include="src\core\math\mat4.h">
+      <Filter>src\core\math</Filter>
     </ClInclude>
-    <ClInclude Include="Camera.h">
-      <Filter>Header Files</Filter>
+    <ClInclude Include="src\core\math\vec2.h">
+      <Filter>src\core\math</Filter>
     </ClInclude>
-    <ClInclude Include="Matematicas.h">
-      <Filter>Header Files</Filter>
+    <ClInclude Include="src\core\math\vec4.h">
+      <Filter>src\core\math</Filter>
     </ClInclude>
-    <ClInclude Include="Projection.h">
-      <Filter>Header Files</Filter>
+    <ClInclude Include="src\core\math\math_utils.h">
+      <Filter>src\core\math</Filter>
     </ClInclude>
-    <ClInclude Include="Mesh.h">
-      <Filter>Header Files</Filter>
+    <ClInclude Include="src\core\image\pixel_buffer.h">
+      <Filter>src\core\image</Filter>
     </ClInclude>
-    <ClInclude Include="Rasterizer.h">
-      <Filter>Header Files</Filter>
+    <ClInclude Include="src\core\image\color.h">
+      <Filter>src\core\image</Filter>
     </ClInclude>
-    <ClInclude Include="Lighting.h">
-      <Filter>Header Files</Filter>
+    <ClInclude Include="src\core\image\depth_buffer.h">
+      <Filter>src\core\image</Filter>
     </ClInclude>
-    <ClInclude Include="ObjLoader.h">
-      <Filter>Header Files</Filter>
+    <ClInclude Include="src\scene\camera.h">
+      <Filter>src\scene</Filter>
     </ClInclude>
-    <ClInclude Include="ImageFilter.h">
-      <Filter>Header Files</Filter>
+    <ClInclude Include="src\scene\light.h">
+      <Filter>src\scene</Filter>
     </ClInclude>
+    <ClInclude Include="src\scene\material.h">
+      <Filter>src\scene</Filter>
+    </ClInclude>
+    <ClInclude Include="src\scene\mesh.h">
+      <Filter>src\scene</Filter>
+    </ClInclude>
+    <ClInclude Include="src\scene\object3d.h">
+      <Filter>src\scene</Filter>
+    </ClInclude>
+    <ClInclude Include="src\scene\scene.h">
+      <Filter>src\scene</Filter>
+    </ClInclude>
+    <ClInclude Include="src\scene\texture.h">
+      <Filter>src\scene</Filter>
+    </ClInclude>
+    <ClInclude Include="src\scene\transform.h">
+      <Filter>src\scene</Filter>
+    </ClInclude>
+    <ClInclude Include="src\renderer\pipeline\render_engine.h">
+      <Filter>src\renderer\pipeline</Filter>
+    </ClInclude>
+    <ClInclude Include="src\renderer\pipeline\render_settings.h">
+      <Filter>src\renderer\pipeline</Filter>
+    </ClInclude>
+    <ClInclude Include="src\renderer\pipeline\viewport.h">
+      <Filter>src\renderer\pipeline</Filter>
+    </ClInclude>
+    <ClInclude Include="src\renderer\stages\lighting_model.h">
+      <Filter>src\renderer\stages</Filter>
+    </ClInclude>
+    <ClInclude Include="src\renderer\stages\rasterizer.h">
+      <Filter>src\renderer\stages</Filter>
+    </ClInclude>
+    <ClInclude Include="src\renderer\stages\vertex_processor.h">
+      <Filter>src\renderer\stages</Filter>
+    </ClInclude>
+    <ClInclude Include="src\loaders\obj_loader.h">
+      <Filter>src\loaders</Filter>
+    </ClInclude>
+    <ClInclude Include="src\app\scene_builder.h">
+      <Filter>src\app</Filter>
+    </ClInclude>
+    <ClInclude Include="src\loaders\texture_loader.h">
+      <Filter>src\loaders</Filter>
+    </ClInclude>
+    <ClInclude Include="src\app\scene_presets.h">
+      <Filter>src\app</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="src\ui\qml\Main.qml">
+      <Filter>src\ui\qml</Filter>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="src\app\scene_presets.cpp">
+      <Filter>src\app</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>
