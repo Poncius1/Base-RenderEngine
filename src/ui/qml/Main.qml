@@ -13,26 +13,39 @@ Window {
 
     property bool loadingModel: false
 
+    // Cambia este nombre por el OBJ real dentro de src/models
+    property string defaultModelName: "bunny.obj"
+
+    function getModelPath(fileName) {
+        return modelBasePath + "/" + fileName
+    }
+
     function loadDefaultModel() {
-        loadingModel = true
+        root.loadingModel = true
         loadTimer.start()
     }
 
     Timer {
-    id: loadTimer
-    interval: 100
-    repeat: false
-    onTriggered: {
-        canvas.loadObj("D:/Visual Projects/Graficacion1/assets/models/teapot.obj")
-        loadingModel = false
+        id: loadTimer
+        interval: 100
+        repeat: false
+
+        onTriggered: {
+            var objPath = root.getModelPath(root.defaultModelName)
+            console.log("Loading OBJ from:", objPath)
+
+            canvas.loadObj(objPath)
+
+            root.loadingModel = false
+        }
     }
-}
 
     Component.onCompleted: {
         loadDefaultModel()
     }
 
     Item {
+        id: mainView
         anchors.fill: parent
         focus: true
 
@@ -88,7 +101,6 @@ Window {
             }
         }
 
-        // Settings en esquina
         Rectangle {
             anchors.left: parent.left
             anchors.top: parent.top
@@ -126,7 +138,6 @@ Window {
             }
         }
 
-        // Controles abajo en fila
         Rectangle {
             anchors.bottom: parent.bottom
             anchors.horizontalCenter: parent.horizontalCenter
@@ -169,12 +180,12 @@ Window {
                     font.pixelSize: 28
                     anchors.horizontalCenter: parent.horizontalCenter
                 }
+
                 BusyIndicator {
                     running: root.loadingModel
                     anchors.horizontalCenter: parent.horizontalCenter
                 }
             }
         }
-
     }
 }
