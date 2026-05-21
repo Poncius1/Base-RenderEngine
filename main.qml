@@ -5,7 +5,7 @@ Window {
     visible: true
     width: 500
     height: 500
-    title: "Graficacion - Tarea 4"
+    title: "Graficacion - Tarea 5"
 
     Item {
         anchors.fill: parent
