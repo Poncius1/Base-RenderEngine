@@ -42,9 +42,10 @@
     <QtQMLDebugEnable>true</QtQMLDebugEnable>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x64'" Label="QtSettings">
-    <QtInstall>6.10.2_msvc2022_64</QtInstall>
+    <QtInstall>6.11.1_msvc2022_64</QtInstall>
     <QtModules>quick</QtModules>
     <QtBuildConfig>release</QtBuildConfig>
+    <QtPlugin>true</QtPlugin>
   </PropertyGroup>
   <Target Name="QtMsBuildNotFound" BeforeTargets="CustomBuild;ClCompile" Condition="!Exists('$(QtMsBuild)\qt.targets') or !Exists('$(QtMsBuild)\qt.props')">
     <Message Importance="High" Text="QtMsBuild: could not locate qt.targets, qt.props; project may not build correctly." />
@@ -144,6 +145,20 @@
     <ClInclude Include="src\scene\texture.h" />
     <ClInclude Include="src\scene\transform.h" />
     <QtMoc Include="src\ui\qt\pixel_canvas.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="src\models\bunny.obj">
+      <FileType>Document</FileType>
+    </None>
+    <None Include="src\models\Cube_Triangles.obj">
+      <FileType>Document</FileType>
+    </None>
+    <None Include="src\models\dragon.obj">
+      <FileType>Document</FileType>
+    </None>
+    <None Include="src\models\Happy_Buddha.obj">
+      <FileType>Document</FileType>
+    </None>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Condition="Exists('$(QtMsBuild)\qt.targets')">

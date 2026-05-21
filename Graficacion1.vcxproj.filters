@@ -191,6 +191,10 @@
     <None Include="src\ui\qml\Main.qml">
       <Filter>src\ui\qml</Filter>
     </None>
+    <None Include="src\models\bunny.obj" />
+    <None Include="src\models\Cube_Triangles.obj" />
+    <None Include="src\models\dragon.obj" />
+    <None Include="src\models\Happy_Buddha.obj" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\app\scene_presets.cpp">

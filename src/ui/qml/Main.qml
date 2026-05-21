@@ -13,20 +13,29 @@ Window {
 
     property bool loadingModel: false
 
+    function getModelPath(fileName) {
+        return modelBasePath + "/" + fileName
+    }
+
     function loadDefaultModel() {
         loadingModel = true
         loadTimer.start()
     }
 
     Timer {
-    id: loadTimer
-    interval: 100
-    repeat: false
-    onTriggered: {
-        canvas.loadObj("D:/Visual Projects/Graficacion1/assets/models/dragon.obj")
-        loadingModel = false
+        id: loadTimer
+        interval: 100
+        repeat: false
+
+        onTriggered: {
+            var objPath = getModelPath("bunny.obj")
+            console.log("Loading OBJ from:", objPath)
+
+            canvas.loadObj(objPath)
+
+            loadingModel = false
+        }
     }
-}
 
     Component.onCompleted: {
         loadDefaultModel()
@@ -88,7 +97,6 @@ Window {
             }
         }
 
-        // Settings en esquina
         Rectangle {
             anchors.left: parent.left
             anchors.top: parent.top
@@ -119,14 +127,32 @@ Window {
                     color: "#334155"
                 }
 
-                Text { text: "Projection: " + canvas.projectionName; color: "#E5E7EB"; font.pixelSize: 14 }
-                Text { text: "Material: " + canvas.activeMaterialName; color: "#E5E7EB"; font.pixelSize: 14 }
-                Text { text: canvas.blueLightState; color: "#E5E7EB"; font.pixelSize: 14 }
-                Text { text: canvas.animationState; color: "#E5E7EB"; font.pixelSize: 14 }
+                Text {
+                    text: "Projection: " + canvas.projectionName
+                    color: "#E5E7EB"
+                    font.pixelSize: 14
+                }
+
+                Text {
+                    text: "Material: " + canvas.activeMaterialName
+                    color: "#E5E7EB"
+                    font.pixelSize: 14
+                }
+
+                Text {
+                    text: canvas.blueLightState
+                    color: "#E5E7EB"
+                    font.pixelSize: 14
+                }
+
+                Text {
+                    text: canvas.animationState
+                    color: "#E5E7EB"
+                    font.pixelSize: 14
+                }
             }
         }
 
-        // Controles abajo en fila
         Rectangle {
             anchors.bottom: parent.bottom
             anchors.horizontalCenter: parent.horizontalCenter
@@ -169,12 +195,12 @@ Window {
                     font.pixelSize: 28
                     anchors.horizontalCenter: parent.horizontalCenter
                 }
+
                 BusyIndicator {
                     running: root.loadingModel
                     anchors.horizontalCenter: parent.horizontalCenter
                 }
             }
         }
-
     }
 }
